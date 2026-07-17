@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Jul's Closet</title>
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="icon" href="logo.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh;}
+.app{max-width:480px;margin:0 auto;padding:1.25rem 1rem 4rem;}
+h1{font-size:22px;font-weight:500;}
+.subtitle{font-size:13px;color:#888;margin-top:2px;margin-bottom:1.25rem;}
+.search input{width:100%;padding:10px 14px;border-radius:10px;border:0.5px solid #ddd;font-size:14px;background:#fff;color:#1a1a1a;outline:none;}
+.search input:focus{border-color:#999;}
+
+/* Category tabs - scrollable */
+.cat-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:1rem -1rem 0;padding:0 1rem;}
+.cat-scroll::-webkit-scrollbar{display:none;}
+.tabs{display:flex;gap:6px;width:max-content;padding-bottom:0.5rem;}
+.tab{padding:5px 14px;border-radius:20px;border:0.5px solid #ddd;font-size:13px;cursor:pointer;background:transparent;color:#666;white-space:nowrap;}
+.tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.subcat-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -1rem;padding:0 1rem;}
+.subcat-scroll::-webkit-scrollbar{display:none;}
+.subtabs{display:flex;gap:6px;width:max-content;padding-bottom:0.75rem;}
+.subtab{padding:4px 12px;border-radius:20px;border:0.5px solid #e0e0e0;font-size:12px;cursor:pointer;background:transparent;color:#999;white-space:nowrap;}
+.subtab.active{background:#555;color:#fff;border-color:#555;}
+
+.count{font-size:12px;color:#aaa;margin:0.75rem 0 0.75rem;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.card{background:#fff;border:0.5px solid #e8e8e8;border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
+.card:hover{border-color:#bbb;}
+.card-img{width:100%;aspect-ratio:1;object-fit:cover;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:36px;}
+.card-img img{width:100%;height:100%;object-fit:cover;}
+.card-body{padding:10px 12px 12px;}
+.card-brand{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;}
+.card-name{font-size:13px;font-weight:500;color:#1a1a1a;margin:2px 0 4px;line-height:1.3;}
+.card-meta{font-size:11px;color:#aaa;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;margin-top:5px;}
+.b-outerwear{background:#fff3e0;color:#b36200;}
+.b-top{background:#e8f5e9;color:#2e7d32;}
+.b-bottom{background:#e3f0ff;color:#1a5fa8;}
+.b-dress{background:#fce4ec;color:#ad1457;}
+.b-shoes{background:#e6f7ee;color:#1a7a42;}
+.b-bag{background:#ffe8e8;color:#a82020;}
+.b-jewelry{background:#f3e5f5;color:#6a1b9a;}
+.b-accessory{background:#e0f7fa;color:#00695c;}
+.b-underwear{background:#fafafa;color:#666;border:0.5px solid #ddd;}
+.b-sport{background:#e8eaf6;color:#283593;}
+.b-other{background:#f5f5f5;color:#666;}
+
+.add-btn{width:100%;margin-top:1.5rem;padding:14px;border-radius:12px;border:1px dashed #ccc;background:transparent;color:#888;font-size:14px;cursor:pointer;}
+.add-btn:hover{background:#fff;color:#333;}
+
+/* Sheets */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:50;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.sheet{background:#fff;border-radius:20px 20px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;}
+.sheet-handle{width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 1.25rem;}
+.sheet h2{font-size:17px;font-weight:500;margin-bottom:1.25rem;}
+.field{margin-bottom:12px;}
+.field label{font-size:11px;color:#888;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.4px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border-radius:9px;border:0.5px solid #ddd;font-size:14px;background:#f9f9f9;color:#1a1a1a;font-family:inherit;outline:none;}
+.field textarea{resize:vertical;min-height:64px;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#999;background:#fff;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+/* Image upload */
+.img-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.img-box{border-radius:12px;border:1.5px dashed #ddd;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#f9f9f9;position:relative;overflow:hidden;aspect-ratio:1;width:100%;}
+.img-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.img-box-label{font-size:11px;color:#aaa;margin-top:4px;text-align:center;}
+.img-box input{display:none;}
+
+/* AI scan button */
+.ai-scan-btn{width:100%;padding:11px;border-radius:10px;border:0.5px solid #ddd;background:#f9f9f9;color:#333;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;}
+.ai-scan-btn:active{background:#f0f0f0;}
+.ai-loading{display:none;font-size:13px;color:#888;text-align:center;padding:8px;margin-bottom:8px;}
+
+.btn-row{display:flex;gap:8px;margin-top:1.25rem;}
+.btn-cancel{flex:1;padding:12px;border-radius:10px;border:0.5px solid #ddd;background:transparent;color:#666;font-size:14px;cursor:pointer;}
+.btn-save{flex:2;padding:12px;border-radius:10px;border:none;background:#1a1a1a;color:#fff;font-size:14px;cursor:pointer;font-weight:500;}
+
+/* Detail */
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:50;align-items:flex-end;justify-content:center;}
+.detail-overlay.open{display:flex;}
+.detail-sheet{background:#fff;border-radius:20px 20px 0 0;padding:0 0 2rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;}
+.detail-img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:64px;}
+.detail-img img{width:100%;height:100%;object-fit:cover;}
+.detail-body{padding:1.25rem;}
+.detail-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;}
+.close-x{width:30px;height:30px;border-radius:50%;background:#f0f0f0;border:none;font-size:16px;cursor:pointer;color:#666;flex-shrink:0;}
+.d-brand{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;}
+.d-name{font-size:19px;font-weight:500;color:#1a1a1a;margin:3px 0 1rem;}
+.d-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:0.5px solid #f0f0f0;font-size:13px;gap:12px;}
+.d-row:last-child{border-bottom:none;}
+.d-label{color:#aaa;flex-shrink:0;}
+.d-val{color:#1a1a1a;font-weight:500;text-align:right;}
+.d-notes{margin-top:12px;padding:12px;background:#f9f9f7;border-radius:10px;font-size:13px;color:#666;line-height:1.6;}
+.d-care{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.care-tag{padding:4px 10px;border-radius:20px;font-size:12px;background:#f0f0f0;color:#555;}
+.detail-actions{display:flex;gap:8px;margin-top:1rem;}
+.edit-btn{flex:1;padding:11px;border-radius:10px;border:0.5px solid #ddd;background:transparent;color:#333;font-size:14px;cursor:pointer;}
+.del-btn{flex:1;padding:11px;border-radius:10px;border:none;background:#fff0f0;color:#c0392b;font-size:13px;cursor:pointer;}
+.empty{grid-column:span 2;text-align:center;padding:3rem 1rem;color:#bbb;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>我的衣橱</h1>
+  <p class="subtitle">Julie's personal wardrobe</p>
+  <div class="search"><input type="text" id="search" placeholder="搜索品牌、材质、单品..." oninput="render()"></div>
+  <div class="cat-scroll"><div class="tabs" id="tabs"></div></div>
+  <div class="subcat-scroll" id="subcatScroll" style="display:none"><div class="subtabs" id="subtabs"></div></div>
+  <p class="count" id="count"></p>
+  <div class="grid" id="grid"></div>
+  <button class="add-btn" onclick="openAdd()">＋ 添加单品</button>
+</div>
+
+<!-- Add sheet -->
+<div class="overlay" id="addModal">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <h2 id="modal-title">添加单品</h2>
+
+  <!-- Image upload: official + outfit -->
+  <div class="img-row">
+    <div class="img-box" onclick="document.getElementById('imgInput').click()">
+      <img id="imgPreview" style="display:none">
+      <span style="font-size:22px;">🛍️</span>
+      <span class="img-box-label">官方图</span>
+      <input type="file" id="imgInput" accept="image/*" onchange="handleImg(event,'imgPreview','official')">
+    </div>
+    <div class="img-box" onclick="document.getElementById('outfitInput').click()">
+      <img id="outfitPreview" style="display:none">
+      <span style="font-size:22px;">🪞</span>
+      <span class="img-box-label">上身图</span>
+      <input type="file" id="outfitInput" accept="image/*" onchange="handleImg(event,'outfitPreview','outfit')">
+    </div>
+  </div>
+
+  <!-- AI label scan -->
+  <button class="ai-scan-btn" onclick="document.getElementById('scanInput').click()">
+    🔍 拍洗水标，AI自动识别材质尺码
+    <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none" onchange="scanLabel(event)">
+  </button>
+  <div class="ai-loading" id="aiLoading">⏳ AI识别中，请稍候...</div>
+
+  <div class="field-row">
+    <div class="field"><label>大类</label>
+      <select id="f-bigcat" onchange="updateSubcat()">
+        <option value="大衣/皮草">大衣/皮草</option>
+        <option value="外套">外套</option>
+        <option value="上装">上装</option>
+        <option value="下装">下装</option>
+        <option value="裙子">裙子</option>
+        <option value="鞋子">鞋子</option>
+        <option value="配饰">配饰</option>
+        <option value="首饰">首饰</option>
+        <option value="内衣/睡衣">内衣/睡衣</option>
+        <option value="运动">运动</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="field"><label>小类</label>
+      <select id="f-subcat"></select>
+    </div>
+  </div>
+
+  <div class="field"><label>品牌</label><input id="f-brand" placeholder="如 Max Mara"></div>
+  <div class="field"><label>单品名称</label><input id="f-name" placeholder="如 101801 驼色大衣"></div>
+  <div class="field-row">
+    <div class="field"><label>颜色</label><input id="f-color" placeholder="如 驼色"></div>
+    <div class="field"><label>尺码</label><input id="f-size" placeholder="如 S / 36"></div>
+  </div>
+  <div class="field"><label>材质</label><input id="f-material" placeholder="如 100% 羊绒"></div>
+  <div class="field"><label>洗涤保养</label><input id="f-care" placeholder="如 干洗 / 手洗30°C"></div>
+  <div class="field-row">
+    <div class="field"><label>购买渠道</label><input id="f-where" placeholder="如 官网 / SKP"></div>
+    <div class="field"><label>购入价格</label><input id="f-price" placeholder="如 $2,800"></div>
+  </div>
+  <div class="field"><label>购买时间</label><input type="date" id="f-date"></div>
+  <div class="field"><label>适合场合</label><input id="f-occasion" placeholder="如 日常、出行、正式"></div>
+  <div class="field"><label>备注 / 搭配建议</label><textarea id="f-notes" placeholder="保养心得、搭配建议..."></textarea></div>
+
+  <div class="btn-row">
+    <button class="btn-cancel" onclick="closeAdd()">取消</button>
+    <button class="btn-save" onclick="saveItem()">保存</button>
+  </div>
+</div>
+</div>
+
+<!-- Detail sheet -->
+<div class="detail-overlay" id="detailModal">
+<div class="detail-sheet">
+  <div id="d-img-official" class="detail-img"></div>
+  <div id="d-img-outfit" style="display:none;width:100%;aspect-ratio:3/4;overflow:hidden;background:#f5f5f5;">
+    <img id="d-outfit-img" style="width:100%;height:100%;object-fit:cover;">
+  </div>
+  <div style="display:flex;gap:6px;padding:10px 1.25rem 0;" id="d-img-tabs">
+    <button id="d-tab-official" onclick="switchImgTab('official')" style="flex:1;padding:7px;border-radius:8px;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:12px;cursor:pointer;">官方图</button>
+    <button id="d-tab-outfit" onclick="switchImgTab('outfit')" style="flex:1;padding:7px;border-radius:8px;border:0.5px solid #ddd;background:transparent;color:#aaa;font-size:12px;cursor:pointer;">上身图</button>
+  </div>
+  <div class="detail-body">
+    <div class="detail-top">
+      <div><div class="d-brand" id="d-brand"></div><div class="d-name" id="d-name"></div></div>
+      <button class="close-x" onclick="closeDetail()">✕</button>
+    </div>
+    <div id="d-rows"></div>
+    <div class="d-notes" id="d-notes" style="display:none"></div>
+    <div class="detail-actions">
+      <button class="edit-btn" onclick="openEdit()">编辑</button>
+      <button class="del-btn" onclick="deleteItem()">删除</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const SUBCATS = {
+  '大衣/皮草':['貂皮大衣','羊绒大衣','羊毛大衣','皮草马甲','其他皮草'],
+  '外套':['羽绒服','风衣','冲锋衣','皮衣','夹克','其他外套'],
+  '上装':['毛衣/针织','衬衫','T恤','打底衫','吊带/背心','其他上装'],
+  '下装':['牛仔长裤','西裤/休闲裤','羊绒/羊毛裤','运动裤','短裤','其他裤子'],
+  '裙子':['半裙','连衣裙','西装裙','其他裙子'],
+  '鞋子':['靴子','高跟鞋','平底鞋/芭蕾鞋','乐福鞋','运动鞋','拖鞋/凉鞋','其他鞋子'],
+  '配饰':['包包','眼镜/太阳镜','围巾/丝巾','帽子','腰带','其他配饰'],
+  '首饰':['项链','耳环','戒指','手镯/手链','其他首饰'],
+  '内衣/睡衣':['内衣','睡衣','袜子','其他内衣'],
+  '运动':['运动上装','运动裤','运动鞋','其他运动'],
+  '其他':['其他']
+};
+
+const BADGE_MAP = {
+  '大衣/皮草':'b-outerwear','外套':'b-outerwear','上装':'b-top',
+  '下装':'b-bottom','裙子':'b-dress','鞋子':'b-shoes',
+  '首饰':'b-jewelry','配饰':'b-accessory','内衣/睡衣':'b-underwear',
+  '运动':'b-sport','其他':'b-other'
+};
+
+const EMOJI_MAP = {
+  '大衣/皮草':'🦊','外套':'🧥','上装':'👕','下装':'👖','裙子':'👗',
+  '鞋子':'👠','首饰':'💍','配饰':'👜','内衣/睡衣':'🌙',
+  '运动':'🏃','其他':'✨'
+};
+
+function updateSubcat() {
+  const big = document.getElementById('f-bigcat').value;
+  const sub = document.getElementById('f-subcat');
+  sub.innerHTML = (SUBCATS[big]||['其他']).map(s=>`<option>${s}</option>`).join('');
+}
+
+const SEED = [
+  {id:1,bigcat:'大衣/皮草',subcat:'羊毛大衣',brand:'Max Mara',name:'101801 经典大衣',color:'驼色',size:'S',material:'羊毛混纺',care:'干洗',where:'Max Mara官网',price:'$2,800',occasion:'日常、出行、正式',notes:'衣橱基石单品。',img:''},
+  {id:2,bigcat:'大衣/皮草',subcat:'羊毛大衣',brand:'Max Mara Studio',name:'翻领长款大衣',color:'驼色',size:'S',material:'羊毛混纺（薄款）',care:'干洗',where:'Max Mara Studio',price:'',occasion:'春秋过渡季',notes:'比101801更轻薄。',img:''},
+  {id:3,bigcat:'大衣/皮草',subcat:'羊毛大衣',brand:'Luluodesaison',name:'灰色大衣',color:'灰色',size:'S',material:'亚麻+羊毛',care:'干洗',where:'',price:'',occasion:'日常',notes:'',img:''},
+  {id:4,bigcat:'外套',subcat:'羽绒服',brand:'Moncler',name:'Maya 羽绒服',color:'黑色',size:'S',material:'尼龙面 鹅绒填充',care:'干洗',where:'Moncler',price:'',occasion:'冬天保暖',notes:'',img:''},
+  {id:5,bigcat:'外套',subcat:'羽绒服',brand:'Moncler',name:'Padded Teddy & Wool Zip Up Cardigan',color:'',size:'S',material:'混纺',care:'',where:'Moncler',price:'',occasion:'过渡季叠穿',notes:'',img:''},
+  {id:6,bigcat:'外套',subcat:'风衣',brand:'Burberry',name:'经典风衣',color:'米驼色',size:'S',material:'棉混纺',care:'干洗',where:'Burberry',price:'',occasion:'春秋、出行',notes:'经典款。',img:''},
+  {id:7,bigcat:'外套',subcat:'冲锋衣',brand:'Burberry',name:'冲锋衣',color:'',size:'S',material:'防水面料',care:'机洗',where:'Burberry',price:'',occasion:'户外、旅行',notes:'',img:''},
+  {id:8,bigcat:'下装',subcat:'西裤/休闲裤',brand:'The Row',name:'Gala 裤',color:'黑色',size:'25',material:'醋酸纤维混纺',care:'干洗',where:'The Row',price:'',occasion:'正式、日常精致',notes:'垂感极好。',img:''},
+  {id:9,bigcat:'下装',subcat:'短裤',brand:'Alexander Wang',name:'牛仔短裤',color:'黑色',size:'',material:'棉混纺',care:'机洗',where:'Alexander Wang',price:'',occasion:'夏天日常',notes:'',img:''},
+  {id:10,bigcat:'上装',subcat:'毛衣/针织',brand:'Ralph Lauren',name:'圆领羊绒毛衣',color:'白色',size:'S',material:'100% 羊绒',care:'手洗冷水',where:'',price:'',occasion:'日常、叠穿',notes:'共两件白色。',img:''},
+  {id:11,bigcat:'上装',subcat:'衬衫',brand:'Chloé',name:'真丝衬衫',color:'',size:'S',material:'100% 真丝',care:'干洗',where:'Chloé',price:'',occasion:'日常、半正式',notes:'唯一一件衬衫。',img:''},
+  {id:12,bigcat:'上装',subcat:'T恤',brand:'Fendi',name:'经典Logo针织上衣',color:'黑色',size:'S',material:'针织',care:'',where:'Fendi',price:'',occasion:'日常',notes:'',img:''},
+  {id:13,bigcat:'上装',subcat:'T恤',brand:'Loewe',name:'经典白色短袖',color:'白色',size:'S',material:'棉',care:'机洗',where:'Loewe',price:'',occasion:'日常',notes:'',img:''},
+  {id:14,bigcat:'上装',subcat:'T恤',brand:'Maison Margiela',name:'数字短袖',color:'白色',size:'S',material:'棉',care:'机洗',where:'MM',price:'',occasion:'日常',notes:'',img:''},
+  {id:15,bigcat:'鞋子',subcat:'拖鞋/凉鞋',brand:'Hermès',name:'H 拖鞋（带跟）',color:'白色',size:'',material:'皮革',care:'',where:'Hermès',price:'',occasion:'日常、度假',notes:'',img:''},
+  {id:16,bigcat:'鞋子',subcat:'靴子',brand:'Maison Margiela',name:'Tabi 靴子 8cm',color:'黑色',size:'',material:'皮革',care:'',where:'MM',price:'',occasion:'秋冬日常',notes:'分趾设计。',img:''},
+  {id:17,bigcat:'鞋子',subcat:'乐福鞋',brand:'Prada',name:'乐福鞋 3cm',color:'黑色',size:'',material:'皮革',care:'',where:'Prada',price:'',occasion:'日常、半正式',notes:'',img:''},
+  {id:18,bigcat:'鞋子',subcat:'平底鞋/芭蕾鞋',brand:'The Row',name:'Stella Ballerina Flat',color:'黑色',size:'',material:'皮革+毛内里',care:'',where:'The Row',price:'',occasion:'秋冬日常',notes:'',img:''},
+  {id:19,bigcat:'鞋子',subcat:'高跟鞋',brand:'YSL',name:'Kate Pointed Toe Slingback',color:'棕色',size:'',material:'皮革',care:'',where:'YSL',price:'',occasion:'正式、晚宴',notes:'9-10cm。',img:''},
+  {id:20,bigcat:'鞋子',subcat:'平底鞋/芭蕾鞋',brand:'Chanel',name:'经典芭蕾鞋',color:'裸色+黑色',size:'',material:'皮革',care:'',where:'Chanel',price:'',occasion:'日常、半正式',notes:'',img:''},
+  {id:21,bigcat:'鞋子',subcat:'高跟鞋',brand:'Valentino',name:'铆钉平底鞋 蓝色',color:'蓝色',size:'',material:'皮革',care:'',where:'Valentino',price:'',occasion:'日常',notes:'另有一双裸色。',img:''},
+  {id:22,bigcat:'鞋子',subcat:'乐福鞋',brand:'Miu Miu',name:'Boat 乐福鞋',color:'棕色',size:'',material:'皮革+绑带',care:'',where:'Miu Miu',price:'',occasion:'日常',notes:'',img:''},
+  {id:23,bigcat:'配饰',subcat:'包包',brand:'Chanel',name:'Mini 25 Bag',color:'黑色',size:'Mini',material:'羊皮 金扣',care:'',where:'Chanel',price:'',occasion:'日常、出行',notes:'',img:''},
+  {id:24,bigcat:'配饰',subcat:'包包',brand:'Chanel',name:'单肩包',color:'蓝色',size:'',material:'皮革',care:'',where:'Chanel',price:'',occasion:'日常',notes:'',img:''},
+  {id:25,bigcat:'配饰',subcat:'包包',brand:'Louis Vuitton',name:'Victoria',color:'',size:'',material:'皮革',care:'',where:'LV',price:'',occasion:'出行',notes:'',img:''},
+  {id:26,bigcat:'配饰',subcat:'包包',brand:'Dior',name:'戴妃包 小号',color:'红色漆皮',size:'小号',material:'漆皮',care:'',where:'Dior',price:'',occasion:'晚宴、特殊场合',notes:'',img:''},
+  {id:27,bigcat:'配饰',subcat:'包包',brand:'Dragon Diffusion',name:'Santa Croce Leather Bag',color:'深棕色',size:'',material:'编织皮革',care:'',where:'',price:'',occasion:'日常',notes:'',img:''},
+  {id:28,bigcat:'内衣/睡衣',subcat:'睡衣',brand:'Manito',name:'真丝睡衣套装',color:'',size:'S',material:'100% 真丝',care:'手洗冷水',where:'',price:'',occasion:'居家',notes:'衣橱里最好的睡衣。',img:''},
+  {id:29,bigcat:'运动',subcat:'运动上装',brand:'Lululemon',name:'运动服系列',color:'',size:'S/4',material:'功能面料',care:'机洗冷水',where:'Lululemon',price:'',occasion:'健身',notes:'',img:''},
+  {id:30,bigcat:'运动',subcat:'运动上装',brand:'Alo',name:'运动服系列',color:'',size:'XS/S',material:'功能面料',care:'机洗冷水',where:'Alo',price:'',occasion:'健身',notes:'',img:''},
+  {id:31,bigcat:'上装',subcat:'打底衫',brand:'Skims',name:'Fits Everybody 短袖上衣',color:'',size:'XS/S',material:'棉混纺',care:'机洗冷水',where:'Skims',price:'',occasion:'日常、内搭',notes:'Fits Everybody系列。',img:''},
+  {id:32,bigcat:'上装',subcat:'打底衫',brand:'Skims',name:'Fits Everybody 长袖上衣',color:'',size:'XS/S',material:'棉混纺',care:'机洗冷水',where:'Skims',price:'',occasion:'日常、内搭',notes:'',img:''},
+  {id:33,bigcat:'上装',subcat:'打底衫',brand:'Skims',name:'Stretch Cotton Jersey 背心',color:'',size:'XS/S',material:'Stretch Cotton Jersey',care:'机洗冷水',where:'Skims',price:'',occasion:'日常、内搭',notes:'',img:''},
+  {id:34,bigcat:'下装',subcat:'其他裤子',brand:'Skims',name:'Fits Everybody 裤子',color:'',size:'XS/S',material:'棉混纺',care:'机洗冷水',where:'Skims',price:'',occasion:'日常、居家',notes:'',img:''},
+  {id:35,bigcat:'上装',subcat:'吊带/背心',brand:'Free People',name:'吊带',color:'',size:'S',material:'',care:'',where:'Free People',price:'',occasion:'日常、叠穿',notes:'',img:''},
+];
+
+let items = JSON.parse(localStorage.getItem('jwardrobe3')||'null') || SEED;
+let nextId = Math.max(...items.map(i=>i.id))+1;
+let activeTab = '全部';
+let activeSubcat = '全部';
+let editingId = null;
+let viewingId = null;
+let currentImg = '';
+let currentOutfitImg = '';
+
+function save(){localStorage.setItem('jwardrobe3',JSON.stringify(items));}
+
+function allCats(){
+  const used=[...new Set(items.map(i=>i.bigcat))];
+  return['全部',...used];
+}
+
+function subcatsFor(bigcat){
+  if(!bigcat||bigcat==='全部') return [];
+  const used=[...new Set(items.filter(i=>i.bigcat===bigcat).map(i=>i.subcat).filter(Boolean))];
+  return used.length>1?['全部',...used]:[];
+}
+
+function filtered(){
+  const q=document.getElementById('search').value.toLowerCase();
+  return items.filter(i=>{
+    const matchTab=activeTab==='全部'||i.bigcat===activeTab;
+    const matchSub=activeSubcat==='全部'||!activeSubcat||i.subcat===activeSubcat;
+    const matchQ=!q||[i.brand,i.name,i.color,i.material,i.bigcat,i.subcat,i.occasion,i.notes].join(' ').toLowerCase().includes(q);
+    return matchTab&&matchSub&&matchQ;
+  });
+}
+
+function render(){
+  document.getElementById('tabs').innerHTML=allCats().map(c=>
+    `<button class="tab${c===activeTab?' active':''}" onclick="setTab('${c}')">${c}</button>`
+  ).join('');
+  const subs=subcatsFor(activeTab);
+  const subScroll=document.getElementById('subcatScroll');
+  if(subs.length){
+    subScroll.style.display='block';
+    document.getElementById('subtabs').innerHTML=subs.map(s=>
+      `<button class="subtab${s===activeSubcat?' active':''}" onclick="setSubcat('${s}')">${s}</button>`
+    ).join('');
+  } else {
+    subScroll.style.display='none';
+  }
+  const list=filtered();
+  document.getElementById('count').textContent=`${list.length} 件单品`;
+  document.getElementById('grid').innerHTML=list.length?list.map(it=>`
+    <div class="card" onclick="openDetail(${it.id})">
+      <div class="card-img">${it.img?`<img src="${it.img}">`:`<span>${EMOJI_MAP[it.bigcat]||'✨'}</span>`}</div>
+      <div class="card-body">
+        <div class="card-brand">${it.brand}</div>
+        <div class="card-name">${it.name}</div>
+        <div class="card-meta">${[it.color,it.subcat].filter(Boolean).join(' · ')}</div>
+        <span class="badge ${BADGE_MAP[it.bigcat]||'b-other'}">${it.bigcat}</span>
+      </div>
+    </div>`).join(''):'<div class="empty">暂无单品</div>';
+}
+
+function setTab(c){activeTab=c;activeSubcat='全部';render();}
+function setSubcat(s){activeSubcat=s;render();}
+
+function handleImg(e, previewId, type){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    if(type==='official') currentImg=ev.target.result;
+    else currentOutfitImg=ev.target.result;
+    const prev=document.getElementById(previewId);
+    prev.src=ev.target.result; prev.style.display='block';
+  };
+  r.readAsDataURL(f);
+}
+
+async function scanLabel(e){
+  const f=e.target.files[0]; if(!f) return;
+  const loading=document.getElementById('aiLoading');
+  loading.style.display='block';
+  try{
+    const r=new FileReader();
+    r.onload=async ev=>{
+      const b64=ev.target.result.split(',')[1];
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens:1000,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:f.type,data:b64}},
+            {type:'text',text:'这是一件衣服的洗水标/成分标签照片。请识别并以JSON格式返回以下信息（只返回JSON，不要其他文字）：{"material":"材质成分","size":"尺码","care":"洗涤方式（中文，简洁列出）","brand":"品牌（如果有）"}。如果某项看不清就返回空字符串。'}
+          ]}]
+        })
+      });
+      const data=await resp.json();
+      const text=data.content[0].text;
+      try{
+        const info=JSON.parse(text.replace(/```json|```/g,'').trim());
+        if(info.material) document.getElementById('f-material').value=info.material;
+        if(info.size) document.getElementById('f-size').value=info.size;
+        if(info.care) document.getElementById('f-care').value=info.care;
+        if(info.brand && !document.getElementById('f-brand').value) document.getElementById('f-brand').value=info.brand;
+      }catch(e){console.log('parse error',text);}
+    };
+    r.readAsDataURL(f);
+  }finally{
+    setTimeout(()=>loading.style.display='none',2000);
+  }
+}
+
+function openAdd(){
+  editingId=null; currentImg=''; currentOutfitImg='';
+  document.getElementById('modal-title').textContent='添加单品';
+  ['brand','name','color','size','material','care','where','price','date','occasion','notes'].forEach(f=>document.getElementById('f-'+f).value='');
+  document.getElementById('imgPreview').style.display='none';
+  document.getElementById('outfitPreview').style.display='none';
+  updateSubcat();
+  document.getElementById('addModal').classList.add('open');
+}
+function closeAdd(){document.getElementById('addModal').classList.remove('open');}
+
+function openEdit(){
+  const it=items.find(i=>i.id===viewingId); if(!it) return;
+  closeDetail();
+  editingId=viewingId; currentImg=it.img||''; currentOutfitImg=it.outfitImg||'';
+  document.getElementById('modal-title').textContent='编辑单品';
+  document.getElementById('f-bigcat').value=it.bigcat;
+  updateSubcat();
+  document.getElementById('f-subcat').value=it.subcat;
+  ['brand','name','color','size','material','care','where','price','date','occasion','notes'].forEach(f=>document.getElementById('f-'+f).value=it[f]||'');
+  const prev=document.getElementById('imgPreview');
+  if(it.img){prev.src=it.img;prev.style.display='block';}else{prev.style.display='none';}
+  const oprev=document.getElementById('outfitPreview');
+  if(it.outfitImg){oprev.src=it.outfitImg;oprev.style.display='block';}else{oprev.style.display='none';}
+  document.getElementById('addModal').classList.add('open');
+}
+
+function saveItem(){
+  const g=id=>document.getElementById('f-'+id).value.trim();
+  if(!g('brand')&&!g('name')) return;
+  const item={
+    id:editingId||nextId++,
+    bigcat:document.getElementById('f-bigcat').value,
+    subcat:document.getElementById('f-subcat').value,
+    brand:g('brand'),name:g('name'),color:g('color'),size:g('size'),
+    material:g('material'),care:g('care'),where:g('where'),price:g('price'),
+    date:g('date'),occasion:g('occasion'),notes:g('notes'),img:currentImg,outfitImg:currentOutfitImg
+  };
+  items=editingId?items.map(i=>i.id===editingId?item:i):[...items,item];
+  save();closeAdd();render();
+}
+
+function switchImgTab(tab){
+  const isOfficial=tab==='official';
+  document.getElementById('d-img-official').style.display=isOfficial?'':'none';
+  document.getElementById('d-img-outfit').style.display=isOfficial?'none':'';
+  document.getElementById('d-tab-official').style.cssText=isOfficial?'flex:1;padding:7px;border-radius:8px;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:12px;cursor:pointer;':'flex:1;padding:7px;border-radius:8px;border:0.5px solid #ddd;background:transparent;color:#aaa;font-size:12px;cursor:pointer;';
+  document.getElementById('d-tab-outfit').style.cssText=isOfficial?'flex:1;padding:7px;border-radius:8px;border:0.5px solid #ddd;background:transparent;color:#aaa;font-size:12px;cursor:pointer;':'flex:1;padding:7px;border-radius:8px;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:12px;cursor:pointer;';
+}
+
+function openDetail(id){
+  const it=items.find(i=>i.id===id); if(!it) return;
+  viewingId=id;
+  const di=document.getElementById('d-img-official');
+  di.innerHTML=it.img?`<img src="${it.img}" style="width:100%;height:100%;object-fit:cover;">`:`<span>${EMOJI_MAP[it.bigcat]||'✨'}</span>`;
+  const oi=document.getElementById('d-img-outfit');
+  const oimg=document.getElementById('d-outfit-img');
+  if(it.outfitImg){oimg.src=it.outfitImg;oi.style.display='';}else{oi.style.display='none';}
+  const tabs=document.getElementById('d-img-tabs');
+  tabs.style.display=it.outfitImg?'':'none';
+  switchImgTab('official');
+  document.getElementById('d-brand').textContent=it.brand;
+  document.getElementById('d-name').textContent=it.name;
+  const rows=[['类别',it.bigcat+(it.subcat?' · '+it.subcat:'')],['颜色',it.color],
+    ['尺码',it.size],['材质',it.material],['洗涤',it.care],
+    ['购买渠道',it.where],['购入价格',it.price],['购买时间',it.date],['适合场合',it.occasion]].filter(r=>r[1]);
+  document.getElementById('d-rows').innerHTML=rows.map(r=>
+    `<div class="d-row"><span class="d-label">${r[0]}</span><span class="d-val">${r[1]}</span></div>`).join('');
+  const n=document.getElementById('d-notes');
+  n.style.display=it.notes?'block':'none'; n.textContent=it.notes||'';
+  document.getElementById('detailModal').classList.add('open');
+}
+function closeDetail(){document.getElementById('detailModal').classList.remove('open');}
+function deleteItem(){
+  if(!confirm('确定删除？')) return;
+  items=items.filter(i=>i.id!==viewingId);
+  save();closeDetail();render();
+}
+
+updateSubcat();
+render();
+</script>
+</body>
+</html>

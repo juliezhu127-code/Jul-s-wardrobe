@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Jul's Closet</title>
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="icon" href="logo.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh;}
+.app{max-width:480px;margin:0 auto;padding:0 0 4rem;}
+
+/* Main tabs - wardrobe vs beauty vs wishlist */
+.main-tabs{display:flex;border-bottom:0.5px solid #e0e0e0;background:#fff;position:sticky;top:0;z-index:10;}
+.main-tab{flex:1;padding:12px 0;font-size:13px;font-weight:500;text-align:center;cursor:pointer;color:#aaa;border-bottom:2px solid transparent;background:transparent;border-top:none;border-left:none;border-right:none;}
+.main-tab.active{color:#1a1a1a;border-bottom:2px solid #1a1a1a;}
+
+.section{padding:1rem 1rem 0;}
+h1{font-size:20px;font-weight:500;}
+.subtitle{font-size:13px;color:#888;margin-top:2px;margin-bottom:1rem;}
+.search input{width:100%;padding:10px 14px;border-radius:10px;border:0.5px solid #ddd;font-size:14px;background:#fff;color:#1a1a1a;outline:none;}
+.search input:focus{border-color:#999;}
+
+.cat-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0.75rem -1rem 0;padding:0 1rem;}
+.cat-scroll::-webkit-scrollbar{display:none;}
+.tabs{display:flex;gap:6px;width:max-content;padding-bottom:0.5rem;}
+.tab{padding:5px 14px;border-radius:20px;border:0.5px solid #ddd;font-size:13px;cursor:pointer;background:transparent;color:#666;white-space:nowrap;}
+.tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.subcat-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -1rem;padding:0 1rem;}
+.subcat-scroll::-webkit-scrollbar{display:none;}
+.subtabs{display:flex;gap:6px;width:max-content;padding-bottom:0.75rem;}
+.subtab{padding:4px 12px;border-radius:20px;border:0.5px solid #e0e0e0;font-size:12px;cursor:pointer;background:transparent;color:#999;white-space:nowrap;}
+.subtab.active{background:#555;color:#fff;border-color:#555;}
+
+.count{font-size:12px;color:#aaa;margin:0.5rem 0;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 1rem;}
+.card{background:#fff;border:0.5px solid #e8e8e8;border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;position:relative;}
+.card:hover{border-color:#bbb;}
+.card-img{width:100%;aspect-ratio:1;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;}
+.card-img img{width:100%;height:100%;object-fit:cover;}
+.card-body{padding:10px 12px 12px;}
+.card-brand{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;}
+.card-name{font-size:13px;font-weight:500;color:#1a1a1a;margin:2px 0 4px;line-height:1.3;}
+.card-meta{font-size:11px;color:#aaa;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;margin-top:5px;}
+.b-outerwear{background:#fff3e0;color:#b36200;}
+.b-top{background:#e8f5e9;color:#2e7d32;}
+.b-bottom{background:#e3f0ff;color:#1a5fa8;}
+.b-dress{background:#fce4ec;color:#ad1457;}
+.b-shoes{background:#e6f7ee;color:#1a7a42;}
+.b-bag{background:#ffe8e8;color:#a82020;}
+.b-jewelry{background:#f3e5f5;color:#6a1b9a;}
+.b-accessory{background:#e0f7fa;color:#00695c;}
+.b-underwear{background:#fafafa;color:#666;border:0.5px solid #ddd;}
+.b-sport{background:#e8eaf6;color:#283593;}
+.b-other{background:#f5f5f5;color:#666;}
+
+/* Wishlist heart badge on card */
+.wish-badge{position:absolute;top:8px;right:8px;background:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,0.12);}
+
+/* Priority badge */
+.priority-high{background:#ffeaea;color:#c0392b;padding:2px 8px;border-radius:20px;font-size:10px;margin-top:5px;display:inline-block;}
+.priority-med{background:#fff8e1;color:#b8860b;padding:2px 8px;border-radius:20px;font-size:10px;margin-top:5px;display:inline-block;}
+.priority-low{background:#f0f0f0;color:#666;padding:2px 8px;border-radius:20px;font-size:10px;margin-top:5px;display:inline-block;}
+
+.add-btn{width:calc(100% - 2rem);margin:1.5rem 1rem 0;padding:14px;border-radius:12px;border:1px dashed #ccc;background:transparent;color:#888;font-size:14px;cursor:pointer;display:block;}
+.add-btn:hover{background:#fff;color:#333;}
+
+/* Sheets */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:50;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.sheet{background:#fff;border-radius:20px 20px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;}
+.sheet-handle{width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 1.25rem;}
+.sheet h2{font-size:17px;font-weight:500;margin-bottom:1.25rem;}
+.field{margin-bottom:12px;}
+.field label{font-size:11px;color:#888;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.4px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border-radius:9px;border:0.5px solid #ddd;font-size:14px;background:#f9f9f9;color:#1a1a1a;font-family:inherit;outline:none;}
+.field textarea{resize:vertical;min-height:64px;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#999;background:#fff;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+.img-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.img-box{border-radius:12px;border:1.5px dashed #ddd;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#f9f9f9;position:relative;overflow:hidden;aspect-ratio:1;width:100%;}
+.img-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.img-box-label{font-size:11px;color:#aaa;margin-top:4px;text-align:center;}
+.img-box input{display:none;}
+
+.ai-scan-btn{width:100%;padding:11px;border-radius:10px;border:0.5px solid #ddd;background:#f9f9f9;color:#333;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px;}
+.ai-scan-btn:active{background:#f0f0f0;}
+.ai-loading{display:none;font-size:13px;color:#888;text-align:center;padding:8px;margin-bottom:8px;}
+
+.btn-row{display:flex;gap:8px;margin-top:1.25rem;}
+.btn-cancel{flex:1;padding:12px;border-radius:10px;border:0.5px solid #ddd;background:transparent;color:#666;font-size:14px;cursor:pointer;}
+.btn-save{flex:2;padding:12px;border-radius:10px;border:none;background:#1a1a1a;color:#fff;font-size:14px;cursor:pointer;font-weight:500;}
+
+/* Detail sheet */
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:50;align-items:flex-end;justify-content:center;}
+.detail-overlay.open{display:flex;}
+.detail-sheet{background:#fff;border-radius:20px 20px 0 0;padding:0 0 2rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;}
+.detail-img{width:100%;aspect-ratio:4/3;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:64px;overflow:hidden;}
+.detail-img img{width:100%;height:100%;object-fit:cover;}
+.detail-body{padding:1.25rem;}
+.detail-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;}
+.close-x{width:30px;height:30px;border-radius:50%;background:#f0f0f0;border:none;font-size:16px;cursor:pointer;color:#666;flex-shrink:0;}
+.d-brand{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;}
+.d-name{font-size:19px;font-weight:500;color:#1a1a1a;margin:3px 0 1rem;}
+.d-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:0.5px solid #f0f0f0;font-size:13px;gap:12px;}
+.d-row:last-child{border-bottom:none;}
+.d-label{color:#aaa;flex-shrink:0;}
+.d-val{color:#1a1a1a;font-weight:500;text-align:right;}
+.d-notes{margin-top:12px;padding:12px;background:#f9f9f7;border-radius:10px;font-size:13px;color:#666;line-height:1.6;}
+.detail-actions{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap;}
+.edit-btn{flex:1;padding:11px;border-radius:10px;border:0.5px solid #ddd;background:transparent;color:#333;font-size:14px;cursor:pointer;}
+.del-btn{flex:1;padding:11px;border-radius:10px;border:none;background:#fff0f0;color:#c0392b;font-size:13px;cursor:pointer;}
+.move-btn{width:100%;padding:12px;border-radius:10px;border:none;background:#1a1a1a;color:#fff;font-size:14px;cursor:pointer;font-weight:500;margin-top:4px;}
+.price-btn{width:100%;padding:11px;border-radius:10px;border:0.5px solid #f4b8c8;background:#fff5f8;color:#c0397a;font-size:13px;cursor:pointer;margin-top:4px;}
+
+/* Price result sheet */
+.price-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:60;align-items:flex-end;justify-content:center;}
+.price-overlay.open{display:flex;}
+.price-sheet{background:#fff;border-radius:20px 20px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;}
+.price-result{font-size:14px;line-height:1.8;color:#333;white-space:pre-wrap;}
+
+.img-tabs{display:flex;gap:6px;padding:10px 1.25rem 0;}
+.img-tab-btn{flex:1;padding:7px;border-radius:8px;font-size:12px;cursor:pointer;transition:all 0.15s;}
+.img-tab-active{border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;}
+.img-tab-inactive{border:0.5px solid #ddd;background:transparent;color:#aaa;}
+
+.empty{grid-column:span 2;text-align:center;padding:3rem 1rem;color:#bbb;font-size:14px;}
+.scan-row{display:flex;gap:8px;margin-bottom:8px;}
+.scan-row .ai-scan-btn{flex:1;margin-bottom:0;}
+
+/* Beauty status */
+.status-bar{display:flex;gap:6px;padding:0.5rem 1rem 0;flex-wrap:wrap;}
+.status-btn{padding:5px 14px;border-radius:20px;border:0.5px solid #ddd;font-size:12px;cursor:pointer;background:transparent;color:#666;white-space:nowrap;}
+.status-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.s-using{background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:20px;font-size:10px;display:inline-block;margin-top:4px;}
+.s-stock{background:#fff8e1;color:#b8860b;padding:2px 8px;border-radius:20px;font-size:10px;display:inline-block;margin-top:4px;}
+.s-done{background:#f5f5f5;color:#888;padding:2px 8px;border-radius:20px;font-size:10px;display:inline-block;margin-top:4px;}
+.repurchase-btn{width:100%;padding:11px;border-radius:10px;border:0.5px solid #e8f5e9;background:#f0faf0;color:#2e7d32;font-size:13px;cursor:pointer;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<!-- Main tabs -->
+<div class="main-tabs">
+  <button class="main-tab active" id="tab-wardrobe" onclick="switchMain('wardrobe')">👗 衣橱</button>
+  <button class="main-tab" id="tab-beauty" onclick="switchMain('beauty')">💄 美妆</button>
+  <button class="main-tab" id="tab-wishlist" onclick="switchMain('wishlist')">🤍 心愿单</button>
+  <button class="main-tab" id="tab-backup" onclick="showBackup()" style="font-size:18px;">⚙️</button>
+</div>
+
+<!-- Backup modal -->
+<div class="overlay" id="backupModal">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <h2>数据备份</h2>
+  <p style="font-size:13px;color:#888;margin-bottom:1rem;">定期备份可以防止数据丢失。复制下方文字保存到备忘录，需要恢复时粘贴回来。</p>
+  <button class="btn-save" style="width:100%;margin-bottom:12px;" onclick="exportData()">📋 导出数据（复制到剪贴板）</button>
+  <div class="field">
+    <label>导入数据（粘贴备份文字）</label>
+    <textarea id="importText" style="min-height:100px;" placeholder="粘贴之前导出的备份文字..."></textarea>
+  </div>
+  <button class="btn-save" style="width:100%;background:#c0397a;margin-bottom:12px;" onclick="importData()">📥 导入恢复数据</button>
+  <button class="btn-save" style="width:100%;background:#e74c3c;margin-bottom:12px;" onclick="resetData()">🔄 重置为最新数据（清空当前数据）</button>
+  <button class="btn-cancel" style="width:100%;" onclick="document.getElementById('backupModal').classList.remove('open')">关闭</button>
+</div>
+</div>
+
+<!-- Wardrobe section -->
+<div id="section-wardrobe">
+  <div class="section">
+    <div class="search"><input type="text" id="search-w" placeholder="搜索品牌、材质、单品..." oninput="render()"></div>
+  </div>
+  <div class="cat-scroll" style="padding:0 1rem;"><div class="tabs" id="tabs-w"></div></div>
+  <div class="subcat-scroll" id="subcatScroll-w" style="display:none;padding:0 1rem;"><div class="subtabs" id="subtabs-w"></div></div>
+  <div class="section"><p class="count" id="count-w"></p></div>
+  <div class="grid" id="grid-w"></div>
+  <button class="add-btn" onclick="openAdd('wardrobe')">＋ 添加单品</button>
+</div>
+
+<!-- Beauty section -->
+<div id="section-beauty" style="display:none;">
+  <div class="section">
+    <div class="search"><input type="text" id="search-b" placeholder="搜索品牌、产品名..." oninput="render()"></div>
+  </div>
+  <div class="status-bar">
+    <button class="status-btn active" id="sb-current" onclick="setBeautyStatus('current')">使用中+库存</button>
+    <button class="status-btn" id="sb-done" onclick="setBeautyStatus('done')">已用完</button>
+    <button class="status-btn" id="sb-all" onclick="setBeautyStatus('all')">全部</button>
+  </div>
+  <div class="cat-scroll" style="padding:0 1rem;"><div class="tabs" id="tabs-b"></div></div>
+  <div class="subcat-scroll" id="subcatScroll-b" style="display:none;padding:0 1rem;"><div class="subtabs" id="subtabs-b"></div></div>
+  <div class="section"><p class="count" id="count-b"></p></div>
+  <div class="grid" id="grid-b"></div>
+  <button class="add-btn" onclick="openAdd('beauty')">＋ 添加美妆护肤</button>
+</div>
+
+<!-- Wishlist section -->
+<div id="section-wishlist" style="display:none;">
+  <div class="section">
+    <div class="search"><input type="text" id="search-wl" placeholder="搜索品牌、单品..." oninput="render()"></div>
+  </div>
+  <div class="status-bar">
+    <button class="status-btn active" id="wl-all" onclick="setWishlistPriority('all')">全部</button>
+    <button class="status-btn" id="wl-高" onclick="setWishlistPriority('高')">🔴 必买</button>
+    <button class="status-btn" id="wl-中" onclick="setWishlistPriority('中')">🟡 很想要</button>
+    <button class="status-btn" id="wl-低" onclick="setWishlistPriority('低')">⚪ 随缘</button>
+  </div>
+  <div class="section"><p class="count" id="count-wl"></p></div>
+  <div class="grid" id="grid-wl"></div>
+  <button class="add-btn" onclick="openAdd('wishlist')">＋ 添加心愿单</button>
+</div>
+
+<!-- Add/Edit sheet -->
+<div class="overlay" id="addModal">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <h2 id="modal-title">添加单品</h2>
+
+  <div class="img-row">
+    <div class="img-box" onclick="document.getElementById('imgInput').click()">
+      <img id="imgPreview" style="display:none">
+      <span style="font-size:22px;">🛍️</span>
+      <span class="img-box-label">官方图</span>
+      <input type="file" id="imgInput" accept="image/*" onchange="handleImg(event,'imgPreview','official')">
+    </div>
+    <div class="img-box" onclick="document.getElementById('outfitInput').click()">
+      <img id="outfitPreview" style="display:none">
+      <span style="font-size:22px;">🪞</span>
+      <span class="img-box-label">上身图</span>
+      <input type="file" id="outfitInput" accept="image/*" onchange="handleImg(event,'outfitPreview','outfit')">
+    </div>
+  </div>
+
+  <button class="ai-scan-btn" onclick="document.getElementById('brandScanInput').click()">
+    📸 拍照或上传截图，AI自动识别信息
+    <input type="file" id="brandScanInput" accept="image/*" style="display:none" onchange="scanBrand(event)">
+  </button>
+  <div class="scan-row">
+    <button class="ai-scan-btn" onclick="document.getElementById('scan1Input').click()">
+      🏷️ 洗水标正面（材质/尺码）
+      <input type="file" id="scan1Input" accept="image/*" capture="environment" style="display:none" onchange="scanLabel1(event)">
+    </button>
+    <button class="ai-scan-btn" onclick="document.getElementById('scan2Input').click()">
+      🧺 洗水标背面（洗涤）
+      <input type="file" id="scan2Input" accept="image/*" capture="environment" style="display:none" onchange="scanLabel2(event)">
+    </button>
+  </div>
+  <div class="ai-loading" id="aiLoading">⏳ AI识别中，请稍候...</div>
+
+  <div class="field-row">
+    <div class="field"><label>大类</label>
+      <select id="f-bigcat" onchange="updateSubcat()">
+        <option value="大衣/皮草">大衣/皮草</option>
+        <option value="外套">外套</option>
+        <option value="上装">上装</option>
+        <option value="下装">下装</option>
+        <option value="裙子">裙子</option>
+        <option value="鞋子">鞋子</option>
+        <option value="配饰">配饰</option>
+        <option value="首饰">首饰</option>
+        <option value="内衣/睡衣">内衣/睡衣</option>
+        <option value="运动">运动</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="field"><label>小类</label><select id="f-subcat"></select></div>
+  </div>
+
+  <div class="field" id="f-status-row" style="display:none;">
+    <label>使用状态</label>
+    <select id="f-status">
+      <option value="using">🟢 使用中</option>
+      <option value="stock">🟡 库存中</option>
+      <option value="done">🔴 已用完</option>
+    </select>
+  </div>
+  <div class="field" id="f-repurchase-row" style="display:none;">
+    <label>会回购吗？</label>
+    <select id="f-repurchase">
+      <option value="">未评价</option>
+      <option value="yes">⭐ 会回购</option>
+      <option value="no">❌ 不回购</option>
+    </select>
+  </div>
+
+  <!-- Wishlist only: priority -->
+  <div class="field" id="f-priority-row" style="display:none;">
+    <label>优先级</label>
+    <select id="f-priority">
+      <option value="高">🔴 必买</option>
+      <option value="中">🟡 很想要</option>
+      <option value="低">⚪ 随缘</option>
+    </select>
+  </div>
+  <div class="field" id="f-cattag-row" style="display:none;">
+    <label>品类</label>
+    <select id="f-cattag">
+      <option value="👗 衣服">👗 衣服</option>
+      <option value="👠 鞋子">👠 鞋子</option>
+      <option value="👜 鞋包配饰">👜 鞋包配饰</option>
+      <option value="💍 首饰">💍 首饰</option>
+      <option value="🧴 护肤">🧴 护肤</option>
+      <option value="💄 彩妆">💄 彩妆</option>
+      <option value="🪄 工具仪器">🪄 工具仪器</option>
+      <option value="✨ 其他">✨ 其他</option>
+    </select>
+  </div>
+
+  <div class="field"><label>品牌</label><input id="f-brand" placeholder="如 The Row"></div>
+  <div class="field"><label>单品名称</label><input id="f-name" placeholder="如 Eglitta 白色宽腿牛仔裤"></div>
+  <div class="field-row">
+    <div class="field"><label>颜色</label><input id="f-color" placeholder="如 白色"></div>
+    <div class="field"><label>尺码</label><input id="f-size" placeholder="如 S / 25"></div>
+  </div>
+  <div class="field"><label>材质</label><input id="f-material" placeholder="如 100% 棉"></div>
+  <div class="field"><label>洗涤保养</label><input id="f-care" placeholder="如 干洗"></div>
+  <div class="field-row">
+    <div class="field"><label>购买渠道</label><input id="f-where" placeholder="如 官网 / Mytheresa"></div>
+    <div class="field"><label>价格（¥）</label><input id="f-price" placeholder="如 ¥12,000"></div>
+  </div>
+  <div class="field" id="f-link-row">
+    <label>链接</label><input id="f-link" placeholder="购买链接（可选）" type="url">
+  </div>
+  <div class="field"><label>购买时间</label><input type="date" id="f-date"></div>
+  <div class="field"><label>适合场合</label><input id="f-occasion" placeholder="如 日常、正式"></div>
+  <div class="field"><label>备注 / 搭配建议</label><textarea id="f-notes" placeholder="保养心得、搭配建议、种草来源..."></textarea></div>
+
+  <div class="btn-row">
+    <button class="btn-cancel" onclick="closeAdd()">取消</button>
+    <button class="btn-save" onclick="saveItem()">保存</button>
+  </div>
+</div>
+</div>
+
+<!-- Detail sheet -->
+<div class="detail-overlay" id="detailModal">
+<div class="detail-sheet">
+  <div id="d-img-official" class="detail-img"></div>
+  <div id="d-img-outfit" style="display:none;width:100%;aspect-ratio:3/4;overflow:hidden;background:#f5f5f5;">
+    <img id="d-outfit-img" style="width:100%;height:100%;object-fit:cover;">
+  </div>
+  <div class="img-tabs" id="d-img-tabs" style="display:none;">
+    <button id="d-tab-official" class="img-tab-btn img-tab-active" onclick="switchImgTab('official')">官方图</button>
+    <button id="d-tab-outfit" class="img-tab-btn img-tab-inactive" onclick="switchImgTab('outfit')">上身图</button>
+  </div>
+  <div class="detail-body">
+    <div class="detail-top">
+      <div><div class="d-brand" id="d-brand"></div><div class="d-name" id="d-name"></div></div>
+      <button class="close-x" onclick="closeDetail()">✕</button>
+    </div>
+    <div id="d-rows"></div>
+    <div class="d-notes" id="d-notes" style="display:none"></div>
+    <div class="detail-actions">
+      <button class="edit-btn" onclick="openEdit()">编辑</button>
+      <button class="del-btn" onclick="deleteItem()">删除</button>
+    </div>
+    <button class="move-btn" id="move-btn" style="display:none" onclick="moveToWardrobe()">✅ 已购入，移入衣橱</button>
+    <button class="repurchase-btn" id="repurchase-wishlist-btn" style="display:none" onclick="addRepurchaseToWishlist()">⭐ 加入心愿单补货</button>
+    <button class="price-btn" onclick="queryPrice()">🔍 查询全球参考价格</button>
+  </div>
+</div>
+</div>
+
+<!-- Price result sheet -->
+<div class="price-overlay" id="priceModal">
+<div class="price-sheet">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <h2 style="margin:0;">💰 参考价格</h2>
+    <button class="close-x" onclick="document.getElementById('priceModal').classList.remove('open')">✕</button>
+  </div>
+  <div class="ai-loading" id="priceLoading" style="display:block;">⏳ 搜索各平台价格中...</div>
+  <div class="price-result" id="priceResult"></div>
+</div>
+</div>
+
+<script>
+const SUBCATS={
+  '大衣/皮草':['貂皮大衣','羊绒大衣','羊毛大衣','皮草马甲','其他皮草'],
+  '外套':['羽绒服','风衣','冲锋衣','皮衣','夹克','其他外套'],
+  '上装':['毛衣/针织','衬衫','T恤','打底衫','吊带/背心','其他上装'],
+  '下装':['牛仔长裤','西裤/休闲裤','羊绒/羊毛裤','运动裤','短裤','其他裤子'],
+  '裙子':['半裙','连衣裙','西装裙','其他裙子'],
+  '鞋子':['靴子','高跟鞋','平底鞋/芭蕾鞋','乐福鞋','运动鞋','拖鞋/凉鞋','其他鞋子'],
+  '配饰':['包包','眼镜/太阳镜','围巾/丝巾','帽子','腰带','其他配饰'],
+  '首饰':['项链','耳环','戒指','手镯/手链','其他首饰'],
+  '内衣/睡衣':['内衣','睡衣','袜子','其他内衣'],
+  '运动':['运动上装','运动裤','运动鞋','其他运动'],
+  '其他':['其他'],
+  // Beauty cats
+  '护肤':['洁面/卸妆','爽肤水/化妆水','精华/安瓶','眼霜/眼部护理','面霜/乳液','防晒','面膜','身体护理','香水'],
+  '彩妆':['底妆','眼妆','唇妆','腮红/修容/高光','定妆'],
+  '工具仪器':['美容仪','化妆刷/工具','其他工具'],
+  '医美/功效':['刷酸/医用护肤','术后修复','处方产品'],
+};
+const BEAUTY_CATS=['护肤','彩妆','工具仪器','医美/功效'];
+const BADGE_MAP={'大衣/皮草':'b-outerwear','外套':'b-outerwear','上装':'b-top','下装':'b-bottom','裙子':'b-dress','鞋子':'b-shoes','配饰':'b-accessory','首饰':'b-jewelry','内衣/睡衣':'b-underwear','运动':'b-sport','护肤':'b-dress','彩妆':'b-jewelry','工具仪器':'b-accessory','医美/功效':'b-top','其他':'b-other'};
+const EMOJI_MAP={'大衣/皮草':'🦊','外套':'🧥','上装':'👕','下装':'👖','裙子':'👗','鞋子':'👠','配饰':'👜','首饰':'💍','内衣/睡衣':'🌙','运动':'🏃','护肤':'🧴','彩妆':'💄','工具仪器':'🪄','医美/功效':'💉','其他':'✨'};
+
+const SEED=[
+// 大衣/皮草
+{id:1,type:'wardrobe',bigcat:'大衣/皮草',subcat:'羊毛大衣',brand:'Max Mara',name:'101801 经典大衣',color:'驼色',size:'36',material:'羊毛混纺',care:'干洗',where:'意大利官网海淘',price:'¥14,992',date:'2022-07-11',occasion:'日常、出行、正式',notes:'',img:'',outfitImg:''},
+{id:2,type:'wardrobe',bigcat:'大衣/皮草',subcat:'羊毛大衣',brand:'Max Mara Studio',name:'翻领长款大衣',color:'驼色',size:'36',material:'羊毛混纺',care:'干洗',where:'伦敦Harrods商场',price:'¥7,404',date:'2024-12-16',occasion:'春秋过渡季',notes:'',img:'',outfitImg:''},
+{id:3,type:'wardrobe',bigcat:'大衣/皮草',subcat:'羊毛大衣',brand:'LouLou de Saison',name:'Dunne大衣',color:'灰色',size:'36',material:'亚麻+羊毛',care:'干洗',where:'伦敦Liberty商场',price:'¥3,850',date:'2025-09-17',occasion:'日常',notes:'',img:'',outfitImg:''},
+// 外套
+{id:4,type:'wardrobe',bigcat:'外套',subcat:'风衣',brand:'Burberry',name:'Camden风衣',color:'米驼色',size:'S',material:'棉混纺',care:'干洗',where:'伦敦比斯特',price:'¥6,745',date:'2023-08-05',occasion:'春秋、出行',notes:'',img:'',outfitImg:''},
+{id:5,type:'wardrobe',bigcat:'外套',subcat:'羽绒服',brand:'Moncler',name:'Maya羽绒服',color:'黑色',size:'2',material:'尼龙面 鹅绒填充',care:'干洗',where:'伦敦邦德专卖店',price:'¥12,281',date:'2024-10-04',occasion:'冬天保暖',notes:'',img:'',outfitImg:''},
+{id:6,type:'wardrobe',bigcat:'外套',subcat:'羽绒服',brand:'Moncler',name:'拼接羽绒服',color:'泰迪色',size:'S',material:'混纺',care:'干洗',where:'Bloomingdales App',price:'$1,717',date:'2025-11-28',occasion:'过渡季叠穿',notes:'',img:'',outfitImg:''},
+{id:7,type:'wardrobe',bigcat:'外套',subcat:'其他外套',brand:'Burberry',name:'Check-lined Hooded Jacket',color:'白色',size:'UK10/L',material:'100% 聚酯纤维',care:'专业干洗',where:'伦敦Burberry工厂店',price:'¥2,882',date:'2025-09-19',occasion:'户外、旅行',notes:'',img:'',outfitImg:''},
+// 鞋子
+{id:8,type:'wardrobe',bigcat:'鞋子',subcat:'平底鞋/芭蕾鞋',brand:'Valentino',name:'铆钉平底鞋',color:'蓝色',size:'37.5',material:'皮革',care:'',where:'闪亮时刻App',price:'¥4,074',date:'2021-08-04',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:9,type:'wardrobe',bigcat:'鞋子',subcat:'运动鞋',brand:'Gucci',name:'老爹鞋',color:'白色',size:'36',material:'皮革',care:'',where:'三亚免税店',price:'¥6,400',date:'2021-12-18',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:10,type:'wardrobe',bigcat:'鞋子',subcat:'运动鞋',brand:'Gucci',name:'小脏鞋',color:'',size:'37',material:'皮革',care:'',where:'三亚免税店',price:'¥6,000',date:'2022-03-14',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:11,type:'wardrobe',bigcat:'鞋子',subcat:'高跟鞋',brand:'Hermès',name:'H拖鞋（带跟）',color:'白色',size:'37',material:'皮革',care:'',where:'新加坡金沙商场',price:'¥5,560',date:'2023-02-25',occasion:'日常、度假',notes:'',img:'',outfitImg:''},
+{id:12,type:'wardrobe',bigcat:'鞋子',subcat:'平底鞋/芭蕾鞋',brand:'Valentino',name:'铆钉平底鞋',color:'裸色',size:'37',material:'皮革',care:'',where:'三亚免税店',price:'¥2,524',date:'2023-03-13',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:13,type:'wardrobe',bigcat:'鞋子',subcat:'高跟鞋',brand:'René Caovilla',name:'Barbara高跟凉鞋',color:'裸色',size:'37',material:'皮革',care:'',where:'淘宝官方旗舰店',price:'¥6,863',date:'2024-05-21',occasion:'正式、晚宴',notes:'',img:'',outfitImg:''},
+{id:14,type:'wardrobe',bigcat:'鞋子',subcat:'高跟鞋',brand:'René Caovilla',name:'Chandelier高跟凉鞋',color:'浅褐色',size:'37.5',material:'皮革',care:'',where:'淘宝官方旗舰店',price:'¥6,720',date:'2024-05-22',occasion:'正式、晚宴',notes:'',img:'',outfitImg:''},
+{id:15,type:'wardrobe',bigcat:'鞋子',subcat:'乐福鞋',brand:'Prada',name:'乐福鞋',color:'黑色',size:'37',material:'皮革',care:'',where:'东京松屋银座',price:'¥6,189',date:'2024-06-23',occasion:'日常、半正式',notes:'3cm跟',img:'',outfitImg:''},
+{id:16,type:'wardrobe',bigcat:'鞋子',subcat:'运动鞋',brand:'Balenciaga',name:'老爹鞋',color:'银色',size:'37',material:'皮革',care:'',where:'Bloomingdales App',price:'$719',date:'2025-11-24',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:17,type:'wardrobe',bigcat:'鞋子',subcat:'靴子',brand:'Khaite',name:'Arizona靴子',color:'黑色',size:'37',material:'皮革',care:'',where:'伦敦Harrods商场',price:'¥7,378',date:'2026-03-12',occasion:'秋冬日常',notes:'',img:'',outfitImg:''},
+{id:18,type:'wardrobe',bigcat:'鞋子',subcat:'靴子',brand:'Maison Margiela',name:'Tabi高跟靴',color:'黑色',size:'27',material:'皮革',care:'',where:'Bloomingdales App',price:'$1,311',date:'2026-03-15',occasion:'秋冬日常',notes:'分趾设计',img:'',outfitImg:''},
+{id:19,type:'wardrobe',bigcat:'鞋子',subcat:'高跟鞋',brand:'YSL',name:'Kate尖头高跟凉鞋',color:'棕色',size:'37.5',material:'皮革',care:'',where:'Nordstrom App',price:'$1,218',date:'2026-03-09',occasion:'正式、晚宴',notes:'9-10cm',img:'',outfitImg:''},
+{id:20,type:'wardrobe',bigcat:'鞋子',subcat:'乐福鞋',brand:'Miu Miu',name:'做旧牛皮乐福鞋',color:'棕色',size:'37',material:'做旧牛皮',care:'',where:'Bloomingdales App',price:'$1,152',date:'2026-03-13',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:21,type:'wardrobe',bigcat:'鞋子',subcat:'平底鞋/芭蕾鞋',brand:'The Row',name:'Stella Ballerina Flat',color:'黑色',size:'37',material:'皮革+毛内里',care:'',where:'Nordstrom App',price:'$1,152',date:'2026-03-20',occasion:'秋冬日常',notes:'',img:'',outfitImg:''},
+{id:22,type:'wardrobe',bigcat:'鞋子',subcat:'其他鞋子',brand:'Moon Boot',name:'雪地靴',color:'奶油色',size:'37',material:'',care:'',where:'Bloomingdales App',price:'$196',date:'2026-04-05',occasion:'冬天户外',notes:'',img:'',outfitImg:''},
+{id:23,type:'wardrobe',bigcat:'鞋子',subcat:'运动鞋',brand:'Salomon',name:'XT6 Gore徒步鞋',color:'黑色',size:'37',material:'',care:'',where:'Nordstrom App',price:'$219',date:'2026-04-28',occasion:'户外、运动',notes:'',img:'',outfitImg:''},
+{id:24,type:'wardrobe',bigcat:'鞋子',subcat:'平底鞋/芭蕾鞋',brand:'Chanel',name:'经典芭蕾平底鞋',color:'黑裸拼色',size:'37',material:'皮革',care:'',where:'雅加达Chanel专柜',price:'¥6,714',date:'2026-06-05',occasion:'日常、半正式',notes:'经典Two-Tone配色',img:'',outfitImg:''},
+// 内衣/睡衣
+{id:25,type:'wardrobe',bigcat:'内衣/睡衣',subcat:'睡衣',brand:'CaBrida',name:'睡裙',color:'绿色',size:'M',material:'',care:'',where:'淘宝官方旗舰店',price:'¥1,566',date:'2022-02-12',occasion:'居家',notes:'',img:'',outfitImg:''},
+{id:26,type:'wardrobe',bigcat:'内衣/睡衣',subcat:'睡衣',brand:'Manito',name:'彩色印花真丝睡衣',color:'彩色',size:'M',material:'90% 桑蚕丝 10% 氨纶',care:'冷水轻柔机洗',where:'淘宝官方旗舰店',price:'¥2,166',date:'2025-05-16',occasion:'居家',notes:'',img:'',outfitImg:''},
+{id:27,type:'wardrobe',bigcat:'内衣/睡衣',subcat:'睡衣',brand:'Gelato Pique x Steiff',name:'联名毛绒睡衣套装',color:'',size:'M',material:'',care:'',where:'东京专卖店',price:'¥880',date:'2024-12-07',occasion:'居家',notes:'',img:'',outfitImg:''},
+{id:28,type:'wardrobe',bigcat:'内衣/睡衣',subcat:'睡衣',brand:'Slip to Sleep',name:'竹纤维睡衣套装',color:'',size:'S',material:'竹纤维',care:'',where:'曼谷专卖店',price:'¥331',date:'2025-09-06',occasion:'居家',notes:'',img:'',outfitImg:''},
+{id:29,type:'wardrobe',bigcat:'内衣/睡衣',subcat:'睡衣',brand:'Doen',name:'Lucilia睡裙',color:'蓝色',size:'S',material:'',care:'',where:'Doen官网',price:'$139',date:'2026-05-05',occasion:'居家',notes:'',img:'',outfitImg:''},
+// 上装
+{id:30,type:'wardrobe',bigcat:'上装',subcat:'T恤',brand:'Fendi',name:'针织短袖',color:'黑色',size:'S',material:'针织',care:'',where:'新加坡金沙商场',price:'¥7,680',date:'2023-02-25',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:31,type:'wardrobe',bigcat:'上装',subcat:'T恤',brand:'Loewe',name:'短袖',color:'白色',size:'S',material:'棉',care:'机洗',where:'新加坡金沙商场',price:'¥3,135',date:'2023-02-25',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:32,type:'wardrobe',bigcat:'上装',subcat:'衬衫',brand:'Chloé',name:'衬衫',color:'奶油白',size:'36',material:'100% 真丝',care:'干洗',where:'Neiman Marcus App',price:'$713',date:'2026-05-26',occasion:'日常、半正式',notes:'',img:'',outfitImg:''},
+{id:33,type:'wardrobe',bigcat:'上装',subcat:'毛衣/针织',brand:'Toteme',name:'针织上衣',color:'白色',size:'XS',material:'针织',care:'',where:'淘宝官方旗舰店',price:'¥2,351',date:'2026-06-08',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:34,type:'wardrobe',bigcat:'上装',subcat:'T恤',brand:'Doen',name:'Henri短袖',color:'',size:'XS',material:'',care:'',where:'Nordstrom App',price:'$272',date:'2026-07-04',occasion:'日常',notes:'',img:'',outfitImg:''},
+// 下装
+{id:35,type:'wardrobe',bigcat:'下装',subcat:'西裤/休闲裤',brand:'The Row',name:'Gala裤',color:'黑色',size:'',material:'醋酸纤维混纺',care:'干洗',where:'大阪阪急专柜',price:'¥7,000',date:'2024-12-06',occasion:'正式、日常精致',notes:'垂感极好',img:'',outfitImg:''},
+{id:36,type:'wardrobe',bigcat:'下装',subcat:'牛仔长裤',brand:'Khaite',name:'Bonnie牛仔裤',color:'黑色',size:'26',material:'棉混纺',care:'',where:'Harvey Nichols App',price:'$309',date:'2026-04-15',occasion:'日常',notes:'',img:'',outfitImg:''},
+// 配饰-包包
+{id:37,type:'wardrobe',bigcat:'配饰',subcat:'包包',brand:'Louis Vuitton',name:'Victoria单肩包',color:'黑色',size:'',material:'皮革',care:'',where:'无锡LV专柜',price:'¥17,000',date:'2019-02-14',occasion:'出行、日常',notes:'',img:'',outfitImg:''},
+{id:38,type:'wardrobe',bigcat:'配饰',subcat:'包包',brand:'Dior',name:'漆皮戴妃包 小号',color:'红色',size:'小号',material:'漆皮',care:'',where:'韩国乐天免税店',price:'¥21,945',date:'2019-12-30',occasion:'晚宴、特殊场合',notes:'',img:'',outfitImg:''},
+{id:39,type:'wardrobe',bigcat:'配饰',subcat:'包包',brand:'Chanel',name:'单肩包',color:'蓝色',size:'',material:'皮革',care:'',where:'上海Chanel专柜',price:'¥29,800',date:'2020-12-07',occasion:'日常',notes:'Mini Rectangular配宽皮革肩带',img:'',outfitImg:''},
+{id:40,type:'wardrobe',bigcat:'配饰',subcat:'包包',brand:'Louis Vuitton',name:'洗漱包',color:'经典老花',size:'',material:'帆布',care:'',where:'东京松屋银座',price:'¥6,332',date:'2024-06-23',occasion:'出行',notes:'',img:'',outfitImg:''},
+{id:41,type:'wardrobe',bigcat:'配饰',subcat:'包包',brand:'Goyard',name:'护照包',color:'白色',size:'',material:'帆布',care:'',where:'东京高岛屋',price:'¥5,087',date:'2024-06-22',occasion:'出行',notes:'',img:'',outfitImg:''},
+{id:42,type:'wardrobe',bigcat:'配饰',subcat:'其他配饰',brand:'Rimowa',name:'登机箱',color:'黑色',size:'20寸',material:'铝合金',care:'',where:'东京松屋银座',price:'¥6,764',date:'2024-06-25',occasion:'出行',notes:'',img:'',outfitImg:''},
+{id:43,type:'wardrobe',bigcat:'配饰',subcat:'包包',brand:'Louis Vuitton',name:'Nano化妆包',color:'经典老花',size:'',material:'帆布',care:'',where:'东京LV专卖店',price:'¥7,424',date:'2025-03-21',occasion:'出行、日常',notes:'',img:'',outfitImg:''},
+{id:44,type:'wardrobe',bigcat:'配饰',subcat:'包包',brand:'Goyard',name:'Tote中号',color:'棕色',size:'中号',material:'帆布',care:'',where:'伦敦邦德街Goyard专卖店',price:'$1,835',date:'2025-09-17',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:45,type:'wardrobe',bigcat:'配饰',subcat:'包包',brand:'Dragon Diffusion',name:'8892编织包',color:'深棕色',size:'',material:'编织皮革',care:'',where:'Bloomingdales App',price:'$577',date:'2026-04-20',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:46,type:'wardrobe',bigcat:'配饰',subcat:'包包',brand:'Chanel',name:'25 Bag Mini',color:'黑色',size:'Mini',material:'羊皮 金扣',care:'',where:'雅加达Chanel专柜',price:'¥38,945',date:'2026-06-05',occasion:'日常、出行',notes:'',img:'',outfitImg:''},
+// 首饰
+{id:47,type:'wardrobe',bigcat:'首饰',subcat:'手镯/手链',brand:'Cartier',name:'细版Love手镯',color:'玫瑰金',size:'16号',material:'玫瑰金',care:'',where:'三亚免税店',price:'¥25,935',date:'2020-06-16',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:48,type:'wardrobe',bigcat:'首饰',subcat:'手镯/手链',brand:'Van Cleef & Arpels',name:'五花手链',color:'红色',size:'',material:'',care:'',where:'三亚免税店',price:'¥25,576',date:'2021-12-18',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:49,type:'wardrobe',bigcat:'首饰',subcat:'项链',brand:'Graff',name:'繁花项链 中号',color:'白金色',size:'中号',material:'白金',care:'',where:'大阪高岛屋',price:'¥45,500',date:'2023-07-04',occasion:'正式、日常',notes:'',img:'',outfitImg:''},
+{id:50,type:'wardrobe',bigcat:'首饰',subcat:'耳环',brand:'Mikimoto',name:'珍珠耳钉 6.25mm Q2',color:'',size:'6.25mm',material:'珍珠',care:'',where:'京都御本木专卖店',price:'¥3,434',date:'2023-09-17',occasion:'日常、正式',notes:'',img:'',outfitImg:''},
+{id:51,type:'wardrobe',bigcat:'配饰',subcat:'眼镜/太阳镜',brand:'Celine',name:'复古墨镜',color:'金色',size:'',material:'',care:'',where:'东京伊势丹',price:'¥3,995',date:'2025-08-10',occasion:'日常',notes:'',img:'',outfitImg:''},
+{id:52,type:'wardrobe',bigcat:'配饰',subcat:'眼镜/太阳镜',brand:'Celine',name:'椭圆墨镜',color:'黑色',size:'',material:'',care:'',where:'Bloomingdales App',price:'$605',date:'2025-11-24',occasion:'日常',notes:'',img:'',outfitImg:''},
+// 护肤品
+{id:101,type:'beauty',bigcat:'护肤',subcat:'面霜/乳液',brand:'Helena Rubinstein',name:'黑绷带修护面霜 100ml',color:'',size:'100ml',material:'',care:'',where:'三亚免税店',price:'¥3,274',date:'2021-12-19',occasion:'',notes:'',img:'',outfitImg:'',status:'done',repurchase:'yes'},
+{id:102,type:'beauty',bigcat:'护肤',subcat:'面霜/乳液',brand:'Armani',name:'黑曜石修护面霜 50ml',color:'',size:'50ml',material:'',care:'',where:'三亚免税店',price:'¥1,790',date:'2023-05-09',occasion:'',notes:'',img:'',outfitImg:'',status:'done',repurchase:''},
+{id:103,type:'beauty',bigcat:'护肤',subcat:'面霜/乳液',brand:'Helena Rubinstein',name:'黑绷带修护面霜 50ml',color:'',size:'50ml',material:'',care:'',where:'三亚免税店',price:'¥2,320',date:'2023-05-09',occasion:'',notes:'',img:'',outfitImg:'',status:'done',repurchase:'yes'},
+{id:104,type:'beauty',bigcat:'护肤',subcat:'面膜',brand:'Valmont',name:'幸福面膜 50ml',color:'',size:'50ml',material:'',care:'',where:'马来西亚柏威年百盛',price:'¥1,080',date:'2023-08-26',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:105,type:'beauty',bigcat:'护肤',subcat:'面霜/乳液',brand:'Chanel',name:'黑金面霜 50ml',color:'',size:'50ml',material:'',care:'',where:'大阪高岛屋（套装）',price:'¥3,250',date:'2024-12-07',occasion:'',notes:'黑金套装含4件共¥13,000',img:'',outfitImg:'',status:'done',repurchase:''},
+{id:106,type:'beauty',bigcat:'护肤',subcat:'精华/安瓶',brand:'Chanel',name:'黑金精华 50ml',color:'',size:'50ml',material:'',care:'',where:'大阪高岛屋（套装）',price:'¥3,250',date:'2024-12-07',occasion:'',notes:'黑金套装含4件共¥13,000',img:'',outfitImg:'',status:'done',repurchase:''},
+{id:107,type:'beauty',bigcat:'护肤',subcat:'精华/安瓶',brand:'Chanel',name:'夜间精华油 30ml',color:'',size:'30ml',material:'',care:'',where:'大阪高岛屋（套装）',price:'¥3,250',date:'2024-12-07',occasion:'',notes:'黑金套装含4件共¥13,000',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:108,type:'beauty',bigcat:'护肤',subcat:'眼霜/眼部护理',brand:'Chanel',name:'智慧眼霜 20ml',color:'',size:'20ml',material:'',care:'',where:'大阪高岛屋（套装）',price:'¥3,250',date:'2024-12-07',occasion:'',notes:'黑金套装含4件共¥13,000',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:109,type:'beauty',bigcat:'护肤',subcat:'爽肤水/化妆水',brand:'Chanel',name:'奢华精粹水 200ml',color:'',size:'200ml',material:'',care:'',where:'东京机场免税店',price:'¥1,000',date:'2026-02-14',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:110,type:'beauty',bigcat:'护肤',subcat:'爽肤水/化妆水',brand:'CPB',name:'雅致化妆水 200ml',color:'',size:'200ml',material:'',care:'',where:'东京松屋银座',price:'¥959',date:'2025-03-16',occasion:'',notes:'',img:'',outfitImg:'',status:'done',repurchase:''},
+{id:111,type:'beauty',bigcat:'护肤',subcat:'面霜/乳液',brand:'Cellcosmet',name:'生机面霜 50ml',color:'',size:'50ml',material:'',care:'',where:'Amazon（套装）',price:'$197',date:'2026-06-26',occasion:'',notes:'Cellcosmet套装5件共$986',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:112,type:'beauty',bigcat:'护肤',subcat:'爽肤水/化妆水',brand:'Cellcosmet',name:'精粹水 200ml',color:'',size:'200ml',material:'',care:'',where:'Amazon（套装）',price:'$197',date:'2026-06-26',occasion:'',notes:'Cellcosmet套装5件共$986',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:113,type:'beauty',bigcat:'护肤',subcat:'面膜',brand:'Cellcosmet',name:'红毯面膜 200ml',color:'',size:'200ml',material:'',care:'',where:'Amazon（套装）',price:'$197',date:'2026-06-26',occasion:'',notes:'Cellcosmet套装5件共$986',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:114,type:'beauty',bigcat:'护肤',subcat:'爽肤水/化妆水',brand:'Cellcosmet',name:'调理水 200ml',color:'',size:'200ml',material:'',care:'',where:'Amazon（套装）',price:'$197',date:'2026-06-26',occasion:'',notes:'Cellcosmet套装5件共$986',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:115,type:'beauty',bigcat:'护肤',subcat:'精华/安瓶',brand:'Cellcosmet',name:'按摩凝胶 200ml',color:'',size:'200ml',material:'',care:'',where:'Amazon（套装）',price:'$197',date:'2026-06-26',occasion:'',notes:'Cellcosmet套装5件共$986',img:'',outfitImg:'',status:'using',repurchase:''},
+// 彩妆
+{id:116,type:'beauty',bigcat:'彩妆',subcat:'底妆',brand:'Serge Lutens',name:'粉霜 I10 30ml',color:'I10',size:'30ml',material:'',care:'',where:'淘宝官方旗舰店',price:'¥1,286',date:'2024-03-24',occasion:'',notes:'',img:'',outfitImg:'',status:'done',repurchase:''},
+{id:117,type:'beauty',bigcat:'彩妆',subcat:'定妆',brand:'Elegance',name:'粉饼 色号6',color:'6号',size:'',material:'',care:'',where:'大阪高岛屋',price:'¥600',date:'2024-12-07',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:118,type:'beauty',bigcat:'护肤',subcat:'防晒',brand:'CPB',name:'防晒霜 50ml',color:'',size:'50ml',material:'',care:'',where:'大阪高岛屋',price:'¥530',date:'2024-12-07',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:119,type:'beauty',bigcat:'彩妆',subcat:'底妆',brand:'CPB',name:'晶钻粉霜 50ml',color:'',size:'50ml',material:'',care:'',where:'大阪高岛屋',price:'¥1,505',date:'2024-12-07',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:120,type:'beauty',bigcat:'彩妆',subcat:'唇妆',brand:'Chanel',name:'指缘油',color:'',size:'',material:'',care:'',where:'东京松屋银座',price:'¥200',date:'2025-03-16',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:121,type:'beauty',bigcat:'彩妆',subcat:'唇妆',brand:'Chanel',name:'唇部精华',color:'',size:'',material:'',care:'',where:'东京松屋银座',price:'¥330',date:'2025-03-16',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:122,type:'beauty',bigcat:'彩妆',subcat:'眼妆',brand:'Chanel',name:'眼唇卸妆液',color:'',size:'',material:'',care:'',where:'东京松屋银座',price:'¥195',date:'2025-03-16',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:123,type:'beauty',bigcat:'护肤',subcat:'防晒',brand:'Valmont',name:'防晒霜 50ml',color:'',size:'50ml',material:'',care:'',where:'东京银座',price:'¥1,542',date:'2025-03-16',occasion:'',notes:'',img:'',outfitImg:'',status:'done',repurchase:''},
+{id:124,type:'beauty',bigcat:'护肤',subcat:'防晒',brand:'EviDenS',name:'防晒霜 50ml',color:'',size:'50ml',material:'',care:'',where:'淘宝官方旗舰店',price:'¥654',date:'2025-05-14',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:125,type:'beauty',bigcat:'彩妆',subcat:'底妆',brand:'Serge Lutens',name:'粉底液 N10 30ml',color:'N10',size:'30ml',material:'',care:'',where:'淘宝官方旗舰店',price:'¥883',date:'2025-05-16',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:126,type:'beauty',bigcat:'彩妆',subcat:'腮红/修容/高光',brand:'Chantecaille',name:'腮红 Happy 22ml',color:'Happy',size:'22ml',material:'',care:'',where:'淘宝官方旗舰店',price:'¥337',date:'2025-05-26',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:127,type:'beauty',bigcat:'彩妆',subcat:'唇妆',brand:'Chanel',name:'唇釉 443',color:'443',size:'',material:'',care:'',where:'Bloomingdales线下店',price:'$50',date:'2025-07-05',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:128,type:'beauty',bigcat:'彩妆',subcat:'腮红/修容/高光',brand:'Hourglass',name:'腮红 Scene',color:'Scene',size:'',material:'',care:'',where:'Bloomingdales App',price:'$34',date:'2025-11-28',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:129,type:'beauty',bigcat:'彩妆',subcat:'腮红/修容/高光',brand:'Dior',name:'修容棒 01 Light',color:'01 Light',size:'',material:'',care:'',where:'Bloomingdales App',price:'$47',date:'2026-01-17',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:130,type:'beauty',bigcat:'彩妆',subcat:'眼妆',brand:'Bobbi Brown',name:'卸妆油 400ml',color:'',size:'400ml',material:'',care:'',where:'淘宝官方旗舰店',price:'¥607',date:'2026-06-01',occasion:'',notes:'送了2个100ml',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:131,type:'beauty',bigcat:'彩妆',subcat:'眼妆',brand:'La Prairie',name:'卸妆膏',color:'',size:'',material:'',care:'',where:'Bloomingdales App',price:'$179',date:'2026-06-23',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+// 工具仪器
+{id:132,type:'beauty',bigcat:'工具仪器',subcat:'化妆刷/工具',brand:'MAC',name:'217+219+239眼影刷三件套',color:'',size:'',material:'',care:'',where:'三亚免税店',price:'¥600',date:'2021-12-19',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:133,type:'beauty',bigcat:'工具仪器',subcat:'化妆刷/工具',brand:'Hourglass',name:'Foundation粉底刷',color:'',size:'',material:'',care:'',where:'Bloomingdales App',price:'$46',date:'2025-11-28',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:134,type:'beauty',bigcat:'工具仪器',subcat:'化妆刷/工具',brand:'Hourglass',name:'No.15腮红刷',color:'',size:'',material:'',care:'',where:'Bloomingdales App',price:'$43',date:'2025-11-28',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:135,type:'beauty',bigcat:'工具仪器',subcat:'化妆刷/工具',brand:'Hourglass',name:'Powder散粉刷',color:'',size:'',material:'',care:'',where:'Bloomingdales App',price:'$61',date:'2025-11-28',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:136,type:'beauty',bigcat:'工具仪器',subcat:'化妆刷/工具',brand:'Makeup By Mario',name:'F4多功能刷',color:'',size:'',material:'',care:'',where:'LA Sephora线下店',price:'$40',date:'2026-07-05',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:137,type:'beauty',bigcat:'工具仪器',subcat:'化妆刷/工具',brand:'Patrick TA',name:'鼻子阴影刷',color:'',size:'',material:'',care:'',where:'LA Sephora线下店',price:'$33',date:'2026-07-05',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+// 护发
+{id:138,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Aveda',name:'丰盈强韧洗护套装 紫色1L',color:'紫色',size:'1L',material:'',care:'',where:'首尔乐天免税店',price:'¥1,000',date:'2019-12-31',occasion:'',notes:'',img:'',outfitImg:'',status:'done',repurchase:''},
+{id:139,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Davines',name:'洗护发膜三件套 250ml',color:'',size:'250ml',material:'',care:'',where:'淘宝官方旗舰店',price:'¥317',date:'2024-10-24',occasion:'',notes:'',img:'',outfitImg:'',status:'done',repurchase:''},
+{id:140,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Sisley',name:'护发精油 100ml',color:'',size:'100ml',material:'',care:'',where:'淘宝官方旗舰店',price:'¥639',date:'2025-06-01',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:141,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Sisley',name:'赋活丰盈洗发水 200ml×2',color:'',size:'200ml×2',material:'',care:'',where:'淘宝官方旗舰店',price:'¥807',date:'2025-06-20',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:142,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Oribe',name:'洗护套装 紫色款',color:'紫色',size:'',material:'',care:'',where:'Bloomingdales App',price:'$101',date:'2026-06-23',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:143,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Kérastase',name:'护发精油',color:'',size:'',material:'',care:'',where:'LA Sephora线下店',price:'$43',date:'2026-07-05',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:144,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Bumble and Bumble',name:'洗护套装',color:'',size:'',material:'',care:'',where:'Ulta App',price:'$174',date:'2026-07-09',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+// 身体护理
+{id:145,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Dior',name:'Jasmin身体乳 200ml',color:'',size:'200ml',material:'',care:'',where:'新加坡机场免税店',price:'¥607',date:'2023-09-25',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:146,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'La Mer',name:'身体霜 200ml',color:'',size:'200ml',material:'',care:'',where:'东京松屋银座',price:'¥1,150',date:'2025-03-16',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:147,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Chanel',name:'Gabrielle身体霜 160ml',color:'',size:'160ml',material:'',care:'',where:'Bloomingdales App',price:'$106',date:'2026-03-17',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:148,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Dior',name:'Miss Dior身体霜 150ml',color:'',size:'150ml',material:'',care:'',where:"Macy's App",price:'$100',date:'2026-05-03',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:149,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Dior',name:'真我沐浴露+身体乳套装 200ml',color:'',size:'200ml',material:'',care:'',where:"Macy's App",price:'$140',date:'2026-05-03',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:150,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Dior',name:'Miss Dior沐浴露 175ml',color:'',size:'175ml',material:'',care:'',where:'Bloomingdales App',price:'$68',date:'2026-05-10',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:151,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Byredo',name:'No Man\'s Land身体乳 450ml',color:'',size:'450ml',material:'',care:'',where:'Bloomingdales App',price:'$110',date:'2026-05-10',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:152,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Frederic Malle',name:'Carnal Flower身体油 100ml',color:'',size:'100ml',material:'',care:'',where:'SSENSE App',price:'$195',date:'2026-05-30',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:153,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Chanel',name:'HUILE DOUCE延香身体油 200ml',color:'',size:'200ml',material:'',care:'',where:'新加坡机场免税店',price:'¥1,352',date:'2026-06-10',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:154,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'La Prairie',name:'身体霜 200ml',color:'',size:'200ml',material:'',care:'',where:'Bloomingdales App',price:'$288',date:'2026-06-23',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:155,type:'beauty',bigcat:'护肤',subcat:'身体护理',brand:'Cellcosmet',name:'身体乳 200ml',color:'',size:'200ml',material:'',care:'',where:'Amazon',price:'$191',date:'2026-06-26',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+// 香水
+{id:156,type:'beauty',bigcat:'护肤',subcat:'香水',brand:'Guerlain',name:'我的娇兰淡香精 100ml',color:'',size:'100ml',material:'',care:'',where:'三亚免税店',price:'¥772',date:'2023-05-09',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:157,type:'beauty',bigcat:'护肤',subcat:'香水',brand:'MFK',name:'540 EDP 100ml',color:'',size:'100ml',material:'',care:'',where:'东京银座松屋',price:'¥1,800',date:'2024-06-25',occasion:'',notes:'Maison Francis Kurkdjian',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:158,type:'beauty',bigcat:'护肤',subcat:'香水',brand:'Miller Harris',name:'香水 100ml',color:'',size:'100ml',material:'',care:'',where:'伦敦专卖店',price:'¥1,790',date:'2024-10-04',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+{id:159,type:'beauty',bigcat:'护肤',subcat:'香水',brand:'Parfums de Marly',name:'Vanilla EDP 75ml',color:'',size:'75ml',material:'',care:'',where:'Bloomingdales App',price:'$386',date:'2025-11-28',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:160,type:'beauty',bigcat:'护肤',subcat:'香水',brand:'Byredo',name:'Rose of No Man\'s Land EDP 100ml',color:'',size:'100ml',material:'',care:'',where:'Bloomingdales App',price:'$318',date:'2026-03-17',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:161,type:'beauty',bigcat:'护肤',subcat:'香水',brand:'Diptyque',name:'34 Boulevard室内扩香 75ml',color:'',size:'75ml',material:'',care:'',where:'Bloomingdales App',price:'$231',date:'2026-03-17',occasion:'',notes:'',img:'',outfitImg:'',status:'stock',repurchase:''},
+{id:162,type:'beauty',bigcat:'护肤',subcat:'香水',brand:'Le Labo',name:'29黑茶 100ml',color:'',size:'100ml',material:'',care:'',where:'东京机场免税店',price:'¥1,655',date:'2026-02-14',occasion:'',notes:'',img:'',outfitImg:'',status:'using',repurchase:''},
+// Wishlist
+{id:201,type:'wishlist',priority:'高',cattag:'💍 首饰',bigcat:'首饰',subcat:'手镯/手链',brand:'Cartier',name:'满钻细版Love手镯',color:'白金',size:'16号',material:'白金+钻石',care:'',where:'',price:'',date:'',occasion:'',notes:'',link:'',img:'',outfitImg:''},
+{id:202,type:'wishlist',priority:'高',cattag:'👜 鞋包配饰',bigcat:'配饰',subcat:'包包',brand:'Hermès',name:'Birkin 25',color:'黑色或白色',size:'25',material:'',care:'',where:'',price:'',date:'',occasion:'',notes:'',link:'',img:'',outfitImg:''},
+{id:203,type:'wishlist',priority:'中',cattag:'💍 首饰',bigcat:'首饰',subcat:'项链',brand:'胖东来',name:'翡翠无事牌项链',color:'',size:'',material:'翡翠',care:'',where:'',price:'',date:'',occasion:'',notes:'',link:'',img:'',outfitImg:''},
+];
+
+
+let items=[];
+let dataLoaded=false;
+
+// IndexedDB storage - reliable on iOS Safari PWA
+const DB_NAME='julsCloset';
+const DB_VERSION=1;
+const STORE_NAME='wardrobe';
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onupgradeneeded=e=>{
+      e.target.result.createObjectStore(STORE_NAME);
+    };
+    req.onsuccess=e=>resolve(e.target.result);
+    req.onerror=e=>reject(e);
+  });
+}
+
+async function dbGet(key){
+  const db=await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE_NAME,'readonly');
+    const req=tx.objectStore(STORE_NAME).get(key);
+    req.onsuccess=e=>resolve(e.target.result);
+    req.onerror=e=>reject(e);
+  });
+}
+
+async function dbSet(key,value){
+  const db=await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE_NAME,'readwrite');
+    const req=tx.objectStore(STORE_NAME).put(value,key);
+    req.onsuccess=e=>resolve(e.target.result);
+    req.onerror=e=>reject(e);
+  });
+}
+
+async function loadData(){
+  try{
+    const stored=await dbGet('items');
+    if(stored){
+      items=JSON.parse(stored);
+    } else {
+      // Try localStorage fallback
+      const local=localStorage.getItem('jwardrobe');
+      if(local){
+        items=JSON.parse(local);
+        // Migrate to IndexedDB
+        await dbSet('items',local);
+      } else {
+        items=[...SEED];
+        await dbSet('items',JSON.stringify(items));
+      }
+    }
+  }catch(e){
+    // Last resort fallback
+    const local=localStorage.getItem('jwardrobe');
+    items=local?JSON.parse(local):[...SEED];
+  }
+  nextId=Math.max(...items.map(i=>i.id))+1;
+  render();
+}
+
+async function save(){
+  const data=JSON.stringify(items);
+  try{
+    await dbSet('items',data);
+  }catch(e){}
+  // Also save to localStorage as backup
+  try{localStorage.setItem('jwardrobe',data);}catch(e){}
+}
+async function saveData(){await save();}
+let currentMain='wardrobe';
+let activeTab={wardrobe:'全部',beauty:'全部',wishlist:'全部'};
+let activeSub={wardrobe:'全部',beauty:'全部',wishlist:'全部'};
+let editingId=null;
+let viewingId=null;
+let currentImg='';
+let currentOutfitImg='';
+let addingType='wardrobe';
+let beautyStatusFilter='current';
+let wishlistPriorityFilter='all';
+
+function setBeautyStatus(s){
+  beautyStatusFilter=s;
+  ['current','done','all'].forEach(k=>{
+    const el=document.getElementById('sb-'+k);
+    if(el) el.className='status-btn'+(k===s?' active':'');
+  });
+  render();
+}
+
+function setWishlistPriority(p){
+  wishlistPriorityFilter=p;
+  ['all','高','中','低'].forEach(k=>{
+    const el=document.getElementById('wl-'+k);
+    if(el) el.className='status-btn'+(k===p?' active':'');
+  });
+  render();
+}
+
+let nextId=1;
+
+async function resetData(){
+  if(!confirm('确定清空当前数据并加载最新预设数据吗？此操作不可恢复。')) return;
+  try{
+    await new Promise((resolve,reject)=>{
+      const req=indexedDB.deleteDatabase('julsCloset');
+      req.onsuccess=resolve;
+      req.onerror=reject;
+    });
+  }catch(e){}
+  localStorage.clear();
+  location.reload();
+}
+
+function showBackup(){document.getElementById('backupModal').classList.add('open');}
+
+function exportData(){
+  // Export without images to keep it small
+  const exportItems=items.map(i=>({...i,img:'',outfitImg:''}));
+  const text=JSON.stringify(exportItems);
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>alert('✅ 已复制到剪贴板！请粘贴到备忘录保存。'));
+  } else {
+    document.getElementById('importText').value=text;
+    alert('请手动复制上方文字保存到备忘录。');
+  }
+}
+
+async function importData(){
+  const text=document.getElementById('importText').value.trim();
+  if(!text){alert('请先粘贴备份数据');return;}
+  try{
+    const parsed=JSON.parse(text);
+    if(!Array.isArray(parsed)){throw new Error('格式错误');}
+    if(!confirm(`确定恢复 ${parsed.length} 件单品的数据吗？当前数据会被覆盖。`)) return;
+    items=parsed;
+    nextId=Math.max(...items.map(i=>i.id))+1;
+    await save();
+    document.getElementById('backupModal').classList.remove('open');
+    render();
+    alert('✅ 数据恢复成功！');
+  }catch(e){
+    alert('❌ 数据格式错误，请检查备份文字是否完整。');
+  }
+}
+
+function switchMain(tab){
+  currentMain=tab;
+  ['wardrobe','beauty','wishlist'].forEach(t=>{
+    document.getElementById('section-'+t).style.display=t===tab?'':'none';
+    document.getElementById('tab-'+t).className='main-tab'+(t===tab?' active':'');
+  });
+  render();
+}
+
+function allCats(type){
+  if(type==='beauty') return['全部',...BEAUTY_CATS.filter(c=>items.some(i=>i.type==='beauty'&&i.bigcat===c))];
+  const used=[...new Set(items.filter(i=>i.type===type).map(i=>i.bigcat))];
+  return['全部',...used];
+}
+function subcatsFor(type,bigcat){
+  if(!bigcat||bigcat==='全部') return[];
+  const used=[...new Set(items.filter(i=>i.type===type&&i.bigcat===bigcat).map(i=>i.subcat).filter(Boolean))];
+  return used.length>1?['全部',...used]:[];
+}
+
+function filtered(type){
+  const sidMap={wardrobe:'search-w',beauty:'search-b',wishlist:'search-wl'};
+  const q=document.getElementById(sidMap[type]).value.toLowerCase();
+  return items.filter(i=>{
+    if(i.type!==type) return false;
+    if(type==='beauty'){
+      if(beautyStatusFilter==='current'&&i.status==='done') return false;
+      if(beautyStatusFilter==='done'&&i.status!=='done') return false;
+    }
+    if(type==='wishlist'&&wishlistPriorityFilter!=='all'){
+      if(i.priority!==wishlistPriorityFilter) return false;
+    }
+    const matchTab=activeTab[type]==='全部'||i.bigcat===activeTab[type];
+    const matchSub=activeSub[type]==='全部'||i.subcat===activeSub[type];
+    const matchQ=!q||[i.brand,i.name,i.color,i.material,i.bigcat,i.subcat,i.cattag,i.occasion,i.notes].join(' ').toLowerCase().includes(q);
+    return matchTab&&matchSub&&matchQ;
+  });
+}
+
+function render(){
+  ['wardrobe','beauty','wishlist'].forEach(type=>{
+    const sfxMap={wardrobe:'w',beauty:'b',wishlist:'wl'};
+    const sfx=sfxMap[type];
+
+    // Wishlist uses priority filter instead of category tabs
+    if(type==='wishlist'){
+      const list=filtered(type);
+      document.getElementById('count-wl').textContent=`${list.length} 件`;
+      document.getElementById('grid-wl').innerHTML=list.length?list.map(it=>`
+        <div class="card" onclick="openDetail(${it.id})">
+          <div class="card-img">${it.img?`<img src="${it.img}">`:`<span>${EMOJI_MAP[it.bigcat]||'✨'}</span>`}</div>
+          <div class="wish-badge">${it.priority==='高'?'🔴':it.priority==='中'?'🟡':'⚪'}</div>
+          <div class="card-body">
+            <div class="card-brand">${it.brand}</div>
+            <div class="card-name">${it.name}</div>
+            <div class="card-meta">${it.color||''}</div>
+            ${it.price?`<div style="font-size:11px;color:#c0397a;margin-top:4px;font-weight:500;">${it.price}</div>`:''}
+            ${it.cattag?`<span class="badge b-other">${it.cattag}</span>`:''}
+          </div>
+        </div>`).join(''):'<div class="empty">暂无心愿单</div>';
+      return;
+    }
+
+    document.getElementById('tabs-'+sfx).innerHTML=allCats(type).map(c=>
+      `<button class="tab${c===activeTab[type]?' active':''}" onclick="setTab('${type}','${c}')">${c}</button>`
+    ).join('');
+    const subs=subcatsFor(type,activeTab[type]);
+    const subScroll=document.getElementById('subcatScroll-'+sfx);
+    if(subs.length){
+      subScroll.style.display='block';
+      document.getElementById('subtabs-'+sfx).innerHTML=subs.map(s=>
+        `<button class="subtab${s===activeSub[type]?' active':''}" onclick="setSub('${type}','${s}')">${s}</button>`
+      ).join('');
+    } else subScroll.style.display='none';
+    const list=filtered(type);
+    document.getElementById('count-'+sfx).textContent=`${list.length} 件`;
+    document.getElementById('grid-'+sfx).innerHTML=list.length?list.map(it=>{
+      const statusBadge=it.type==='beauty'?`<span class="${it.status==='done'?'s-done':it.status==='stock'?'s-stock':'s-using'}">${it.status==='done'?(it.repurchase==='yes'?'⭐已用完':it.repurchase==='no'?'❌已用完':'已用完'):it.status==='stock'?'库存中':'使用中'}</span>`:'';
+      return`<div class="card" onclick="openDetail(${it.id})">
+        <div class="card-img">${it.img?`<img src="${it.img}">`:`<span>${EMOJI_MAP[it.bigcat]||'✨'}</span>`}</div>
+        <div class="card-body">
+          <div class="card-brand">${it.brand}</div>
+          <div class="card-name">${it.name}</div>
+          <div class="card-meta">${[it.color,it.subcat].filter(Boolean).join(' · ')}</div>
+          ${it.price?`<div style="font-size:11px;color:#c0397a;margin-top:4px;font-weight:500;">${it.price}</div>`:''}
+          ${statusBadge||`<span class="badge ${BADGE_MAP[it.bigcat]||'b-other'}">${it.bigcat}</span>`}
+        </div>
+      </div>`;
+    }).join(''):'<div class="empty">暂无内容</div>';
+  });
+}
+
+function setTab(type,c){activeTab[type]=c;activeSub[type]='全部';render();}
+function setSub(type,s){activeSub[type]=s;render();}
+function updateSubcat(){
+  const big=document.getElementById('f-bigcat').value;
+  const sub=document.getElementById('f-subcat');
+  sub.innerHTML=(SUBCATS[big]||['其他']).map(s=>`<option>${s}</option>`).join('');
+}
+
+function handleImg(e,previewId,type){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    if(type==='official') currentImg=ev.target.result;
+    else currentOutfitImg=ev.target.result;
+    const prev=document.getElementById(previewId);
+    prev.src=ev.target.result; prev.style.display='block';
+  };
+  r.readAsDataURL(f);
+}
+
+async function callAI(b64,mediaType,prompt){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),30000);
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      signal:controller.signal,
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mediaType,data:b64}},{type:'text',text:prompt}]}]})
+    });
+    const data=await resp.json();
+    return data.content.map(c=>c.text||'').join('');
+  }finally{
+    clearTimeout(timeout);
+  }
+}
+
+async function callAIText(prompt){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),30000);
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      signal:controller.signal,
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}],tools:[{type:'web_search_20250305',name:'web_search'}]})
+    });
+    const data=await resp.json();
+    return data.content.map(c=>c.text||'').filter(Boolean).join('');
+  }finally{
+    clearTimeout(timeout);
+  }
+}
+
+async function scanBrand(e){
+  const f=e.target.files[0]; if(!f) return;
+  const loading=document.getElementById('aiLoading');
+  loading.textContent='⏳ AI识别中，请稍候...'; loading.style.display='block';
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      const b64=ev.target.result.split(',')[1];
+      const text=await callAI(b64,f.type,`这张图片可能是：1）商品截图（电商页面/小红书/Instagram/网页截图）或 2）实物照片。请识别并只返回JSON，不要其他文字：{"brand":"品牌名","name":"商品名称或款式描述","color":"颜色","price":"价格（人民币，格式¥12,000；如是外币请换算并标注原价）","size":"尺码（如有）","material":"材质（如有）","notes":"其他有用信息（如有）"}如果是截图，优先读取图中的文字信息。看不出的字段返回空字符串。`);
+      const info=JSON.parse(text.replace(/```json|```/g,'').trim());
+      if(info.brand&&!document.getElementById('f-brand').value) document.getElementById('f-brand').value=info.brand;
+      if(info.name&&!document.getElementById('f-name').value) document.getElementById('f-name').value=info.name;
+      if(info.color&&!document.getElementById('f-color').value) document.getElementById('f-color').value=info.color;
+      if(info.price&&!document.getElementById('f-price').value) document.getElementById('f-price').value=info.price;
+      if(info.size&&!document.getElementById('f-size').value) document.getElementById('f-size').value=info.size;
+      if(info.material&&!document.getElementById('f-material').value) document.getElementById('f-material').value=info.material;
+      if(info.notes&&!document.getElementById('f-notes').value) document.getElementById('f-notes').value=info.notes;
+    }catch(err){
+      loading.textContent='❌ 识别失败，请重试';
+      setTimeout(()=>loading.style.display='none',2000);
+      return;
+    }
+    loading.style.display='none';
+  };
+  r.onerror=()=>{loading.textContent='❌ 图片读取失败';setTimeout(()=>loading.style.display='none',2000);};
+  r.readAsDataURL(f);
+}
+
+async function scanLabel1(e){
+  const f=e.target.files[0]; if(!f) return;
+  const loading=document.getElementById('aiLoading');
+  loading.textContent='⏳ 识别材质/尺码中...'; loading.style.display='block';
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      const b64=ev.target.result.split(',')[1];
+      const text=await callAI(b64,f.type,'这是衣服洗水标正面（材质成分和尺码）。只返回JSON：{"material":"材质成分","size":"尺码","brand":"品牌（如有）"}。看不清返回空字符串。');
+      const info=JSON.parse(text.replace(/```json|```/g,'').trim());
+      if(info.material) document.getElementById('f-material').value=info.material;
+      if(info.size) document.getElementById('f-size').value=info.size;
+      if(info.brand&&!document.getElementById('f-brand').value) document.getElementById('f-brand').value=info.brand;
+    }catch(err){
+      loading.textContent='❌ 识别失败，请重试';
+      setTimeout(()=>loading.style.display='none',2000);
+      return;
+    }
+    loading.style.display='none';
+  };
+  r.onerror=()=>{loading.textContent='❌ 图片读取失败';setTimeout(()=>loading.style.display='none',2000);};
+  r.readAsDataURL(f);
+}
+
+async function scanLabel2(e){
+  const f=e.target.files[0]; if(!f) return;
+  const loading=document.getElementById('aiLoading');
+  loading.textContent='⏳ 识别洗涤方式中...'; loading.style.display='block';
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      const b64=ev.target.result.split(',')[1];
+      const text=await callAI(b64,f.type,'这是衣服洗水标背面（洗涤护理符号）。只返回JSON：{"care":"洗涤方式中文简洁描述，如：干洗、手洗30°C、不可漂白、低温熨烫"}。');
+      const info=JSON.parse(text.replace(/```json|```/g,'').trim());
+      if(info.care){
+        const ex=document.getElementById('f-care').value;
+        document.getElementById('f-care').value=ex?ex+'；'+info.care:info.care;
+      }
+    }catch(err){
+      loading.textContent='❌ 识别失败，请重试';
+      setTimeout(()=>loading.style.display='none',2000);
+      return;
+    }
+    loading.style.display='none';
+  };
+  r.onerror=()=>{loading.textContent='❌ 图片读取失败';setTimeout(()=>loading.style.display='none',2000);};
+  r.readAsDataURL(f);
+}
+
+async function queryPrice(){
+  const it=items.find(i=>i.id===viewingId); if(!it) return;
+  document.getElementById('priceModal').classList.add('open');
+  document.getElementById('priceLoading').style.display='block';
+  document.getElementById('priceResult').textContent='';
+  const query=`${it.brand} ${it.name} ${it.color||''}`.trim();
+  try{
+    const result=await callAIText(`请帮我查询以下单品在全球各平台的参考零售价格：\n\n单品：${query}\n\n请搜索并列出：国内官网/专柜价、海外官网价（欧洲/美国/日本）、主要电商平台价、二手市场参考价，并换算成人民币，最后给出购买建议（哪里买最划算）。格式清晰易读。`);
+    document.getElementById('priceLoading').style.display='none';
+    document.getElementById('priceResult').textContent=result||'暂未找到相关价格信息。';
+  }catch(err){
+    document.getElementById('priceLoading').style.display='none';
+    document.getElementById('priceResult').textContent='查询失败，请稍后再试。';
+  }
+}
+
+function openAdd(type){
+  addingType=type;
+  editingId=null; currentImg=''; currentOutfitImg='';
+  document.getElementById('modal-title').textContent=type==='wishlist'?'添加心愿单':type==='beauty'?'添加美妆护肤':'添加单品';
+  document.getElementById('f-priority-row').style.display=type==='wishlist'?'':'none';
+  document.getElementById('f-cattag-row').style.display=type==='wishlist'?'':'none';
+  document.getElementById('f-link-row').style.display=type==='wishlist'?'':'none';
+  document.getElementById('f-status-row').style.display=type==='beauty'?'':'none';
+  document.getElementById('f-repurchase-row').style.display=type==='beauty'?'':'none';
+  // Hide bigcat/subcat for wishlist
+  const catRow=document.querySelector('.field-row:has(#f-bigcat)');
+  if(catRow) catRow.style.display=type==='wishlist'?'none':'';
+  ['brand','name','color','size','material','care','where','price','date','occasion','notes','link'].forEach(f=>{
+    const el=document.getElementById('f-'+f); if(el) el.value='';
+  });
+  if(document.getElementById('f-status')) document.getElementById('f-status').value='using';
+  if(document.getElementById('f-repurchase')) document.getElementById('f-repurchase').value='';
+  if(document.getElementById('f-priority')) document.getElementById('f-priority').value='高';
+  if(document.getElementById('f-cattag')) document.getElementById('f-cattag').value='👗 衣服';
+  const bigcatEl=document.getElementById('f-bigcat');
+  if(type==='beauty'){
+    bigcatEl.innerHTML=BEAUTY_CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
+  } else {
+    bigcatEl.innerHTML=['大衣/皮草','外套','上装','下装','裙子','鞋子','配饰','首饰','内衣/睡衣','运动','其他'].map(c=>`<option value="${c}">${c}</option>`).join('');
+  }
+  document.getElementById('imgPreview').style.display='none';
+  document.getElementById('outfitPreview').style.display='none';
+  updateSubcat();
+  document.getElementById('addModal').classList.add('open');
+}
+function closeAdd(){document.getElementById('addModal').classList.remove('open');}
+
+function saveItem(){
+  const g=id=>{const el=document.getElementById('f-'+id); return el?el.value.trim():'';};
+  if(!g('brand')&&!g('name')) return;
+  const item={
+    id:editingId||nextId++,
+    type:editingId?items.find(i=>i.id===editingId).type:addingType,
+    priority:g('priority')||'中',
+    status:g('status')||'using',
+    repurchase:g('repurchase')||'',
+    cattag:g('cattag')||'',
+    bigcat:addingType==='wishlist'?'其他':document.getElementById('f-bigcat').value,
+    subcat:addingType==='wishlist'?'':document.getElementById('f-subcat').value,
+    brand:g('brand'),name:g('name'),color:g('color'),size:g('size'),
+    material:g('material'),care:g('care'),where:g('where'),price:g('price'),
+    date:g('date'),occasion:g('occasion'),notes:g('notes'),
+    link:g('link'),img:currentImg,outfitImg:currentOutfitImg
+  };
+  items=editingId?items.map(i=>i.id===editingId?item:i):[...items,item];
+  save();closeAdd();render();
+}
+
+function switchImgTab(tab){
+  const isOff=tab==='official';
+  document.getElementById('d-img-official').style.display=isOff?'':'none';
+  document.getElementById('d-img-outfit').style.display=isOff?'none':'';
+  document.getElementById('d-tab-official').className='img-tab-btn '+(isOff?'img-tab-active':'img-tab-inactive');
+  document.getElementById('d-tab-outfit').className='img-tab-btn '+(isOff?'img-tab-inactive':'img-tab-active');
+}
+
+function openDetail(id){
+  const it=items.find(i=>i.id===id); if(!it) return;
+  viewingId=id;
+  const di=document.getElementById('d-img-official');
+  di.innerHTML=it.img?`<img src="${it.img}" style="width:100%;height:100%;object-fit:cover;">`:`<span>${EMOJI_MAP[it.bigcat]||'✨'}</span>`;
+  const oi=document.getElementById('d-img-outfit');
+  const oimg=document.getElementById('d-outfit-img');
+  if(it.outfitImg){oimg.src=it.outfitImg;oi.style.display='';}else{oi.style.display='none';}
+  document.getElementById('d-img-tabs').style.display=it.outfitImg?'':'none';
+  switchImgTab('official');
+  document.getElementById('d-brand').textContent=it.brand;
+  document.getElementById('d-name').textContent=it.name;
+  const statusLabel=it.type==='beauty'?{using:'🟢 使用中',stock:'🟡 库存中',done:'🔴 已用完'}[it.status||'using']:'';
+  const repurchaseLabel=it.repurchase==='yes'?'⭐ 会回购':it.repurchase==='no'?'❌ 不回购':'';
+  const rows=[
+    ['类别',it.bigcat+(it.subcat?' · '+it.subcat:'')],
+    ['颜色',it.color],['尺码',it.size],['材质',it.material],['洗涤',it.care],
+    ['购买渠道',it.where],['价格',it.price],['购买时间',it.date],['适合场合',it.occasion],
+    it.type==='beauty'&&statusLabel?['状态',statusLabel]:null,
+    it.type==='beauty'&&repurchaseLabel?['回购',repurchaseLabel]:null,
+    it.link?['链接',`<a href="${it.link}" style="color:#c0397a;">查看链接</a>`]:null,
+    it.priority&&it.type==='wishlist'?['优先级',it.priority==='高'?'🔴 必买':it.priority==='中'?'🟡 很想要':'⚪ 随缘']:null,
+  ].filter(Boolean).filter(r=>r[1]);
+  document.getElementById('d-rows').innerHTML=rows.map(r=>
+    `<div class="d-row"><span class="d-label">${r[0]}</span><span class="d-val">${r[1]}</span></div>`).join('');
+  const n=document.getElementById('d-notes');
+  n.style.display=it.notes?'block':'none'; n.textContent=it.notes||'';
+  document.getElementById('move-btn').style.display=it.type==='wishlist'?'block':'none';
+  // Show repurchase-to-wishlist button for beauty items that are done and marked repurchase=yes
+  const rpBtn=document.getElementById('repurchase-wishlist-btn');
+  if(rpBtn) rpBtn.style.display=(it.type==='beauty'&&it.status==='done'&&it.repurchase==='yes')?'block':'none';
+  document.getElementById('detailModal').classList.add('open');
+}
+function closeDetail(){document.getElementById('detailModal').classList.remove('open');}
+
+function openEdit(){
+  const it=items.find(i=>i.id===viewingId); if(!it) return;
+  closeDetail();
+  addingType=it.type;
+  editingId=viewingId; currentImg=it.img||''; currentOutfitImg=it.outfitImg||'';
+  document.getElementById('modal-title').textContent='编辑单品';
+  document.getElementById('f-priority-row').style.display=it.type==='wishlist'?'':'none';
+  document.getElementById('f-link-row').style.display=it.type==='wishlist'?'':'none';
+  document.getElementById('f-status-row').style.display=it.type==='beauty'?'':'none';
+  document.getElementById('f-repurchase-row').style.display=it.type==='beauty'?'':'none';
+  const bigcatEl=document.getElementById('f-bigcat');
+  if(it.type==='beauty'){
+    bigcatEl.innerHTML=BEAUTY_CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
+  } else {
+    bigcatEl.innerHTML=['大衣/皮草','外套','上装','下装','裙子','鞋子','配饰','首饰','内衣/睡衣','运动','其他'].map(c=>`<option value="${c}">${c}</option>`).join('');
+  }
+  document.getElementById('f-bigcat').value=it.bigcat;
+  updateSubcat();
+  document.getElementById('f-subcat').value=it.subcat;
+  ['brand','name','color','size','material','care','where','price','date','occasion','notes','link'].forEach(f=>{
+    const el=document.getElementById('f-'+f); if(el) el.value=it[f]||'';
+  });
+  if(document.getElementById('f-priority')) document.getElementById('f-priority').value=it.priority||'中';
+  if(document.getElementById('f-status')) document.getElementById('f-status').value=it.status||'using';
+  if(document.getElementById('f-repurchase')) document.getElementById('f-repurchase').value=it.repurchase||'';
+  const prev=document.getElementById('imgPreview');
+  if(it.img){prev.src=it.img;prev.style.display='block';}else{prev.style.display='none';}
+  const oprev=document.getElementById('outfitPreview');
+  if(it.outfitImg){oprev.src=it.outfitImg;oprev.style.display='block';}else{oprev.style.display='none';}
+  document.getElementById('addModal').classList.add('open');
+}
+
+function addRepurchaseToWishlist(){
+  const it=items.find(i=>i.id===viewingId); if(!it) return;
+  const wish={
+    id:nextId++, type:'wishlist', priority:'高',
+    bigcat:it.bigcat, subcat:it.subcat,
+    brand:it.brand, name:it.name, color:it.color, size:it.size,
+    material:it.material, care:it.care, where:it.where, price:it.price,
+    date:'', occasion:it.occasion, notes:'回购补货', link:'', img:it.img, outfitImg:''
+  };
+  items.push(wish);
+  save(); closeDetail();
+  switchMain('wishlist');
+  render();
+  alert('已加入心愿单！');
+}
+
+function moveToWardrobe(){
+  const it=items.find(i=>i.id===viewingId); if(!it) return;
+  it.type='wardrobe';
+  it.date=new Date().toISOString().split('T')[0];
+  save(); closeDetail();
+  switchMain('wardrobe');
+  render();
+}
+
+function deleteItem(){
+  if(!confirm('确定删除？')) return;
+  items=items.filter(i=>i.id!==viewingId);
+  save();closeDetail();render();
+}
+
+updateSubcat();
+loadData();
+</script>
+</body>
+</html>
